@@ -2,7 +2,6 @@
 /*                                          IMPORTS
 /*-----------------------------------------------------------------------------------------------------------------------*/
 import moment from "moment";
-import { CronJob } from "cron";
 import Alpaca from "@alpacahq/alpaca-trade-api";
 
 /**-----------------------------------------------------------------------------------------------------------------------
@@ -43,7 +42,7 @@ export const getLastDailyBar = async (symbol) => {
 	for await (let b of bars) {
 		result.push(b);
 	}
-
+    
 	return result[0];
 };
 
@@ -56,8 +55,7 @@ export const getLastWeeklyBar = async (symbol) => {
 	const lastWeek = moment()
 		.startOf("week")
 		.subtract(1, "weeks")
-		.format("YYYY-MM-DD");
-	console.log(lastWeek);
+		.format("YYYY-MM-DD");	
 
 	// Alpaca SDK call
 	const bars = alpaca.getBarsV2(symbol, {
@@ -84,8 +82,7 @@ export const getLastMonthlyBar = async (symbol) => {
 	const lastMonth = moment()
 		.startOf("month")
 		.subtract(1, "month")
-		.format("YYYY-MM-DD");
-	console.log(lastMonth);
+		.format("YYYY-MM-DD");	
 
 	// Alpaca SDK call
 	const bars = alpaca.getBarsV2(symbol, {

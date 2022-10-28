@@ -1,8 +1,9 @@
 /** --------------------------------------------------------------------------------------------------------------------
  *                                          IMPORTS
  -----------------------------------------------------------------------------------------------------------------------*/
-import dotenv from 'dotenv'
+import dotenv from "dotenv";
 import express from "express";
+import mongoose from "mongoose";
 
 // Strategies
 import pivotPointsStrategy from "./strategies/pivot_points/pivot_points.js";
@@ -10,12 +11,19 @@ import pivotPointsStrategy from "./strategies/pivot_points/pivot_points.js";
 /** --------------------------------------------------------------------------------------------------------------------
  *                                          INITIALIZERS
  -----------------------------------------------------------------------------------------------------------------------*/
+// Environment Variables
+dotenv.config();
 
 // Express init and port specification
 const app = express();
 const port = process.env.PORT || 5000;
 
-dotenv.config()
+// MongoDB
+const db = process.env.MONGO_URI;
+mongoose
+	.connect(db, { useNewUrlParser: true, useUnifiedTopology: true })
+	.then(() => console.log("MongoDB Connected..."))
+	.catch((err) => console.log(err));
 
 /** --------------------------------------------------------------------------------------------------------------------
  *                                          LOGIC
