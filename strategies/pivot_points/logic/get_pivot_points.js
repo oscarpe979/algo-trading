@@ -6,7 +6,7 @@ import {
 	getLastDailyBar,
 	getLastWeeklyBar,
 	getLastMonthlyBar,
-} from "./getBars.js";
+} from "./get_bars.js";
 
 /**-----------------------------------------------------------------------------------------------------------------------
 /*                                          LOGIC

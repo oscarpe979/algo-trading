@@ -4,8 +4,10 @@
 
 import { CronJob } from "cron";
 import Alpaca from "@alpacahq/alpaca-trade-api";
-import moment from "moment";
-import updateAllPivotPoints from "./logic/updateAllPivotPoints.js";
+import moment from "moment-timezone";
+
+import updateAllPivotPoints from "./logic/update_all_pivot_points.js";
+import tradePivotPoints from "./logic/trade_pivot_points.js";
 
 /**-----------------------------------------------------------------------------------------------------------------------
 /*                                          INITIALIZERS
@@ -22,18 +24,28 @@ const alpaca = new Alpaca(options);
 /*                                          VARIABLES & CONSTANTS
 /*-----------------------------------------------------------------------------------------------------------------------*/
 
-const tickers = ["QQQ", "DIA", 'SPY'];
+const tickers = ["QQQ", "DIA", "SPY"];
 
 /**-----------------------------------------------------------------------------------------------------------------------
-/*                                          LOGIC                 0 * 8 * * 1-5
+/*                                          LOGIC
 /*-----------------------------------------------------------------------------------------------------------------------*/
 
 const pivotPointsStrategy = async () => {
 	// Update All Pivot Points on a daily basis Mon-Fri @ 8:00 am EST
 	updateAllPivotPoints(tickers);
 
-	// Get buying signal
-	// let signal = getSignal
+	// Start trading Pivot Points
+	var trade = new CronJob(
+		"0 45 9 * * 1-5",
+		async function () {
+			tradePivotPoints(tickers);			
+		},
+		null,
+		true,
+		"America/New_York"
+	);	
+
+	//tradePivotPoints(tickers);	
 };
 
 /**-----------------------------------------------------------------------------------------------------------------------

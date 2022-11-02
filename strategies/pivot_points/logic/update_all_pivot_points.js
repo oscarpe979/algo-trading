@@ -2,19 +2,19 @@
 /*                                          IMPORTS
 /*-----------------------------------------------------------------------------------------------------------------------*/
 
-import getPivotPoints from "./getPivotPoints.js";
+import getPivotPoints from "./get_pivot_points.js";
 import PivotPoints from "../../../database_models/db_model_pivot_points.js";
-import moment from "moment";
+import moment from "moment-timezone";
 import { CronJob } from "cron";
 
 /**-----------------------------------------------------------------------------------------------------------------------
-/*                                          LOGIC             CronJob:  0 0 8 * * 1-5
+/*                                          LOGIC             CronJob:  0 0/15 8 * * 1-5
 /*-----------------------------------------------------------------------------------------------------------------------*/
 
 const updateAllPivotPoints = async (tickers) => {    
-	// Update Pivot Points every day Mon-Fri @ 8:00 am EST
+	// Update Pivot Points every day Mon-Fri @ 8:00, 8:15, 8:30 and 8:45 am EST
 	var updatePivotPoints = new CronJob(
-		"0 0 8 * * 1-5",
+		"0 0/15 8 * * 1-5",
 		async function () {
 			console.log("Updating Pivot Points");
 			for await (let ticker of tickers) {
@@ -25,7 +25,7 @@ const updateAllPivotPoints = async (tickers) => {
 					{
 						$set: {
 							pivotPoints: tickerPivotPoints,
-							dateCreated: moment(),
+							dateCreated: moment().tz('America/New_York'),
 						},
 					}
 				).then((doc) => {
@@ -35,7 +35,7 @@ const updateAllPivotPoints = async (tickers) => {
 						const newPivotPoints = new PivotPoints({
 							_id: ticker,
 							pivotPoints: tickerPivotPoints,
-							dateCreated: moment(),
+							dateCreated: moment().tz('America/New_York'),
 						});
 						newPivotPoints
 							.save()

@@ -1,7 +1,7 @@
 /**-----------------------------------------------------------------------------------------------------------------------
 /*                                          IMPORTS
 /*-----------------------------------------------------------------------------------------------------------------------*/
-import moment from "moment";
+import moment from "moment-timezone";
 import Alpaca from "@alpacahq/alpaca-trade-api";
 
 /**-----------------------------------------------------------------------------------------------------------------------
@@ -25,7 +25,7 @@ const alpaca = new Alpaca(options);
  * @returns Last DAILY bar available
  */
 export const getLastDailyBar = async (symbol) => {
-	const yesterday = moment()
+	const yesterday = moment().tz('America/New_York')
 		.startOf("day")
 		.subtract(1, "days")
 		.format("YYYY-MM-DD");
@@ -52,7 +52,7 @@ export const getLastDailyBar = async (symbol) => {
  * @returns Last WEEKLY bar available
  */
 export const getLastWeeklyBar = async (symbol) => {
-	const lastWeek = moment()
+	const lastWeek = moment().tz('America/New_York')
 		.startOf("week")
 		.subtract(1, "weeks")
 		.format("YYYY-MM-DD");	
@@ -79,7 +79,7 @@ export const getLastWeeklyBar = async (symbol) => {
  * @returns Last MONTHLY bar available
  */
 export const getLastMonthlyBar = async (symbol) => {
-	const lastMonth = moment()
+	const lastMonth = moment().tz('America/New_York')
 		.startOf("month")
 		.subtract(1, "month")
 		.format("YYYY-MM-DD");	
