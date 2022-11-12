@@ -5,16 +5,25 @@
 import { CronJob } from "cron";
 import moment from "moment-timezone";
 import websocket from "websocket";
+import PivotPoints from "../../../database_models/db_model_pivot_points.js";
+import { checkOportunities } from "./trade_utils.js";
 
 /**-----------------------------------------------------------------------------------------------------------------------
-/*                                          INITIALIZERS
+/*                                          CONSTANTS
 /*-----------------------------------------------------------------------------------------------------------------------*/
-const auth = {
+
+const wssMarketDataURL = "wss://stream.data.alpaca.markets/v2/iex";
+const socketAuth = {
 	action: "auth",
 	key: process.env.ALPACA_KEY_ID,
 	secret: process.env.ALPACA_SECRET_KEY,
 };
-const wssMarketDataURL = "wss://stream.data.alpaca.markets/v2/iex";
+
+/**-----------------------------------------------------------------------------------------------------------------------
+/*                                          INITIALIZERS
+/*-----------------------------------------------------------------------------------------------------------------------*/
+
+// Instantiate the W3CWebSocket withguration options
 const W3CWebSocket = websocket.w3cwebsocket;
 
 /**-----------------------------------------------------------------------------------------------------------------------
@@ -22,7 +31,7 @@ const W3CWebSocket = websocket.w3cwebsocket;
 /*-----------------------------------------------------------------------------------------------------------------------*/
 
 const tradePivotPoints = (tickers) => {
-	console.log("Starting to Trade Pivot Points");
+	console.log(`Starting day to Trade Pivot Points ----------------------------------${moment().tz('America/New_York').toString()}---------------------------------`);
 
 	// Connects to Alpaca Streaming Socket
 	const socketClient = new W3CWebSocket(wssMarketDataURL);
@@ -31,40 +40,51 @@ const tradePivotPoints = (tickers) => {
 	socketClient.onmessage = async function (e) {
 		const data = JSON.parse(e.data);
 		const message = data[0].msg;
-		const subscriptionMessage = { action: "subscribe", trades: tickers };
+		const subscriptionMessage = { action: "subscribe", bars: tickers };
 
 		// Verify Socket Connection
-		if (message === "connected") {
+		if (data[0].T === "success" && message === "connected") {
 			// Autenticate
-			socketClient.send(JSON.stringify(auth));
+			socketClient.send(JSON.stringify(socketAuth));
 		}
 
 		// Verify Socket Authentication
-		else if (message === "authenticated") {
+		else if (data[0].T === "success" && message === "authenticated") {
 			// Subscribe
 			socketClient.send(JSON.stringify(subscriptionMessage));
 		}
 
 		// Getting Trades Data!
-		else
-			for (let trade of data) {
-				let tradeHour = moment(trade.t).tz("America/New_York").hour();
-				let tradeMinute = moment(trade.t).tz("America/New_York").minute();
+		else if (data[0].T === "b") {
+			// Find Pivot Points Info
+			PivotPoints.find().then((ppData) => {
+				//Iterate over socket Data Points
+				for (let currentBar of data) {
+					let barsHour = moment(currentBar.t).tz("America/New_York").hour();
+					let barsMinute = moment(currentBar.t).tz("America/New_York").minute();
 
-				// Closes the socket @ 3:30pm EST Mon - Fri
-				if (trade.t && tradeHour >= 15 && tradeMinute >= 30) {
-					socketClient.close();
-					console.log("Stopping Pivot Points Trading...");
+					// Closes the socket @ 3:30pm EST Mon - Fri
+					if (currentBar.t && barsHour >= 15 && barsMinute >= 30) {
+						socketClient.close();						
+						break;
+					}
+
+					// TRAAAAAAADDE----------------------------------------------------------------
+					// Get all Pivot Points
+					let tickerPivotPointsData = ppData.find(
+						(tickerPp) => tickerPp._id === currentBar.S
+					);					
+					
+					// Constantly checks if there's a Crossover					
+					checkOportunities(currentBar, tickerPivotPointsData);						
 				}
-
-				// TRAAAAAAADDE----------------------------------------------------------------
-				console.log(trade);
-			}
+			});
+		}
 	};
-	
+
 	// Sends message to the console confirming the socket has been closed.
-	socketClient.onclose = function() {
-		console.log('Pivot Points Trading has been Stopped.');
+	socketClient.onclose = function () {
+		console.log(`Pivot Points Trading has been Stopped -------------------------------${moment().tz('America/New_York').toString()}---------------------------------`);
 	};
 };
 

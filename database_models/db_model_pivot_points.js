@@ -11,11 +11,21 @@ const PivotPointsSchema = new Schema({
 		type: Object,
 		required: true,
 	},
+	
+	watching: {
+		type: Object,
+		required: true,
+	},
 
 	dateCreated: {
 		type: Date,
 		required: true,
 	},
+
+	monitoring: {
+		type: Object,
+		required: true
+	}
 });
 
 export default mongoose.model(

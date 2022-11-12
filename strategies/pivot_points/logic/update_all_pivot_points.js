@@ -25,6 +25,7 @@ const updateAllPivotPoints = async (tickers) => {
 					{
 						$set: {
 							pivotPoints: tickerPivotPoints,
+							monitoring: null,
 							dateCreated: moment().tz('America/New_York'),
 						},
 					}
@@ -35,7 +36,8 @@ const updateAllPivotPoints = async (tickers) => {
 						const newPivotPoints = new PivotPoints({
 							_id: ticker,
 							pivotPoints: tickerPivotPoints,
-							dateCreated: moment().tz('America/New_York'),
+							monitoring: null,
+							dateCreated: moment().tz('America/New_York'),							
 						});
 						newPivotPoints
 							.save()
