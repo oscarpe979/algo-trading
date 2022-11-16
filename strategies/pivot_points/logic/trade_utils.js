@@ -14,6 +14,8 @@ const alpacaOptions = {
 	paper: true,
 };
 
+const CASH_LIMIT_AVAILABLE_TO_BUY = 0.1; // Only 10% of the account is available to trade
+
 /**-----------------------------------------------------------------------------------------------------------------------
 /*                                          INITIALIZERS
 /*-----------------------------------------------------------------------------------------------------------------------*/
@@ -85,17 +87,17 @@ const checkUpOneFourth = (currentBar, pivotPointsData) =>{
                 ).then((doc) => {        
                     console.log(`${currentBar.S} has reached one fourth up. Time: ${moment().tz('America/New_York').toString()}`);   
                     // Create Bracket order using Alpaca     
-                    createBracketOrder()      
+                    createBracketOrder(currentBar.S, pivotPointsData.monitoring)  
                 }).catch(err=> console.log(`Error creating monitoring Object for ${bar.S}: ` + err));  
     }
 }
 
 const checkForCrossover = (currentBar, pivotPointsData) => {
 
-    let pivotPoints = pivotPointsData.pivotPoints;
+    let pivotPoints = pivotPointsData.pivotPoints;    
 
     // Current Bar crossing S3
-    if (currentBar.o < pivotPoints.dailyPivotPoints.s3 && currentBar.c > pivotPoints.dailyPivotPoints.s3) {      
+    if (currentBar.o <= pivotPoints.dailyPivotPoints.s3 && currentBar.c > pivotPoints.dailyPivotPoints.s3) {      
         console.log(currentBar.S + ' Crossed S3');
         watch('s3', pivotPoints.dailyPivotPoints.s3, pivotPoints.dailyPivotPoints.s2, currentBar, pivotPointsData.monitoring);     
     }
@@ -103,7 +105,7 @@ const checkForCrossover = (currentBar, pivotPointsData) => {
     // Current Bar crossing S2 
     else if (
         currentBar.o > pivotPoints.dailyPivotPoints.s3 &&
-        currentBar.o < pivotPoints.dailyPivotPoints.s2 && currentBar.c > pivotPoints.dailyPivotPoints.s2
+        currentBar.o <= pivotPoints.dailyPivotPoints.s2 && currentBar.c > pivotPoints.dailyPivotPoints.s2
     ) {        
         console.log(currentBar.S + ' Crossed S2');
         watch('s2', pivotPoints.dailyPivotPoints.s2, pivotPoints.dailyPivotPoints.s1, currentBar);
@@ -112,7 +114,7 @@ const checkForCrossover = (currentBar, pivotPointsData) => {
     // Current Bar crossing S1
     else if (
         currentBar.o > pivotPoints.dailyPivotPoints.s2 &&
-        currentBar.o < pivotPoints.dailyPivotPoints.s1 && currentBar.c > pivotPoints.dailyPivotPoints.s1
+        currentBar.o <= pivotPoints.dailyPivotPoints.s1 && currentBar.c > pivotPoints.dailyPivotPoints.s1
     ) {
         console.log(currentBar.S + ' Crossed S1');
         watch('s1', pivotPoints.dailyPivotPoints.s1, pivotPoints.dailyPivotPoints.pivot, currentBar);  
@@ -121,7 +123,7 @@ const checkForCrossover = (currentBar, pivotPointsData) => {
     // Current Bar crossing PIVOT
     else if (
         currentBar.o > pivotPoints.dailyPivotPoints.s1 &&
-        currentBar.o < pivotPoints.dailyPivotPoints.pivot && currentBar.c > pivotPoints.dailyPivotPoints.pivot
+        currentBar.o <= pivotPoints.dailyPivotPoints.pivot && currentBar.c > pivotPoints.dailyPivotPoints.pivot
     ) {
         console.log(currentBar.S + ' Crossed Pivot');
         watch('pivot', pivotPoints.dailyPivotPoints.pivot, pivotPoints.dailyPivotPoints.r1, currentBar);  
@@ -130,7 +132,7 @@ const checkForCrossover = (currentBar, pivotPointsData) => {
     // Current Bar crossing R1
     else if (
         currentBar.o > pivotPoints.dailyPivotPoints.pivot &&
-        currentBar.o < pivotPoints.dailyPivotPoints.r1 && currentBar.c > pivotPoints.dailyPivotPoints.r1
+        currentBar.o <= pivotPoints.dailyPivotPoints.r1 && currentBar.c > pivotPoints.dailyPivotPoints.r1
     ) {
         console.log(currentBar.S + ' Crossed R1');
         watch('r1', pivotPoints.dailyPivotPoints.r1, pivotPoints.dailyPivotPoints.r2, currentBar);  
@@ -139,7 +141,7 @@ const checkForCrossover = (currentBar, pivotPointsData) => {
     // Current Bar crossing R2
     else if (
         currentBar.o > pivotPoints.dailyPivotPoints.ri &&
-        currentBar.o < pivotPoints.dailyPivotPoints.r2 && currentBar.c > pivotPoints.dailyPivotPoints.r2
+        currentBar.o <= pivotPoints.dailyPivotPoints.r2 && currentBar.c > pivotPoints.dailyPivotPoints.r2
     ) {
         console.log(currentBar.S + ' Crossed R2');
         watch('r2', pivotPoints.dailyPivotPoints.r2, pivotPoints.dailyPivotPoints.r3, currentBar);  
@@ -148,7 +150,7 @@ const checkForCrossover = (currentBar, pivotPointsData) => {
     // Current Bar crossing R3
     else if (
         currentBar.o > pivotPoints.dailyPivotPoints.r2 &&
-        currentBar.o < pivotPoints.dailyPivotPoints.r3 && currentBar.c > pivotPoints.dailyPivotPoints.r3
+        currentBar.o <= pivotPoints.dailyPivotPoints.r3 && currentBar.c > pivotPoints.dailyPivotPoints.r3
     ) {
         console.log(currentBar.S + ' Crossed R3, DONT BUY!!!!')
     }
@@ -158,24 +160,41 @@ const cancelOrder = (orderID) => {
 
 }
 
-const createBracketOrder = () => {
+const createBracketOrder = (ticker, monitoring) => {
+
+    alpaca.getAccount()
+        .then( account => {
+            console.log({
+                symbol: ticker,
+                qty: Math.ceil(account.non_marginable_buying_power*CASH_LIMIT_AVAILABLE_TO_BUY/parseFloat((monitoring.pointPrice*1.01).toFixed(2))), // calculate quantity to buy.
+                side: 'buy',
+                type: 'limit',
+                time_in_force: 'day',
+                limit_price: parseFloat((monitoring.pointPrice*1.01).toFixed(2)), // 0.01% above our monitored pivot point. Rounded to 2 decimal places.
+                order_class: 'bracket',
+                take_profit: {
+                    "limit_price": monitoring.nextPointPrice
+                },
+                stop_loss: {
+                    "stop_price": monitoring.pointPrice*0.99, // Sell if price falls below 1% of the entry price.
+                }
+            }) 
+        })
 
     // alpaca.createOrder({
-    //     symbol: string, // any valid ticker symbol
-    //     qty: number,
-    //     notional: number, // qty or notional required, not both
-    //     side: 'buy' | 'sell',
-    //     type: 'market' | 'limit' | 'stop' | 'stop_limit' | 'trailing_stop',
-    //     time_in_force: 'day' | 'gtc' | 'opg' | 'ioc',
-    //     limit_price: number, // optional,
-    //     stop_price: number, // optional,
-    //     client_order_id: string, // optional,
-    //     extended_hours: boolean, // optional,
-    //     order_class: string, // optional,
-    //     take_profit: object, // optional,
-    //     stop_loss: object, // optional,
-    //     trail_price: string, // optional,
-    //     trail_percent: string // optional,
+    //     symbol: ticker,
+    //     qty: number, ?????????????????
+    //     side: 'buy',
+    //     type: 'limit',
+    //     time_in_force: 'day',
+    //     limit_price: parseFloat((monitoring.pointPrice*1.01).toFixed(2)), // 0.01% above our monitored pivot point. Rounded to 2 decimal places.
+    //     order_class: 'bracket',
+    //     take_profit: {
+    //         "limit_price": monitoring.nextPointPrice
+    //     },
+    //     stop_loss: {
+    //         "stop_price": monitoring.pointPrice*0.99, // Sell if price falls below 1% of the entry price.
+    //     }.
     //   })
 
 }
