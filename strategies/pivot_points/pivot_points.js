@@ -21,17 +21,17 @@ const pivotPointsStrategy = async () => {
 	updateAllPivotPoints(tickers);
 
 	// Start trading Pivot Points - CronJob: "0 30 9 * * 1-5"
-	// var trade = new CronJob(
-	// 	"0 30 9 * * 1-5",
-	// 	async function () {		
-	// 		tradePivotPoints(tickers);			
-	// 	},
-	// 	null,
-	// 	true,
-	// 	"America/New_York"
-	// );	
+	var trade = new CronJob(
+		"0 30 9 * * 1-5",
+		async function () {		
+			tradePivotPoints(tickers);			
+		},
+		null,
+		true,
+		"America/New_York"
+	);	
 
-	tradePivotPoints(tickers);	
+	//tradePivotPoints(tickers);	
 };
 
 /**-----------------------------------------------------------------------------------------------------------------------
