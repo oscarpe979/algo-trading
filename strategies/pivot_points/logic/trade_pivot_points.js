@@ -3,6 +3,7 @@
 /*-----------------------------------------------------------------------------------------------------------------------*/
 
 import { CronJob } from "cron";
+import Alpaca from "@alpacahq/alpaca-trade-api";
 import moment from "moment-timezone";
 import websocket from "websocket";
 import PivotPoints from "../../../database_models/db_model_pivot_points.js";
@@ -12,6 +13,11 @@ import { checkOportunities } from "./trade_utils.js";
 /*                                          CONSTANTS
 /*-----------------------------------------------------------------------------------------------------------------------*/
 
+const alpacaOptions = {
+	keyId: process.env.ALPACA_KEY_ID,
+	secretKey: process.env.ALPACA_SECRET_KEY,
+	paper: true,
+};
 const wssMarketDataURL = "wss://stream.data.alpaca.markets/v2/iex";
 const socketAuth = {
 	action: "auth",
@@ -25,6 +31,9 @@ const socketAuth = {
 
 // Instantiate the W3CWebSocket withguration options
 const W3CWebSocket = websocket.w3cwebsocket;
+
+// Instantiate the ALPACA API with configuration options
+const alpaca = new Alpaca(alpacaOptions);
 
 /**-----------------------------------------------------------------------------------------------------------------------
 /*                                          LOGIC
@@ -75,7 +84,7 @@ const tradePivotPoints = (tickers) => {
 						(tickerPp) => tickerPp._id === currentBar.S
 					);					
 					
-					// Constantly checks if there's a Crossover					
+					// Constantly checks if there's a Oportunities and executes them.					
 					checkOportunities(currentBar, tickerPivotPointsData);						
 				}
 			});
@@ -86,6 +95,18 @@ const tradePivotPoints = (tickers) => {
 	socketClient.onclose = function () {
 		console.log(`Pivot Points Trading has been Stopped -------------------------------${moment().tz('America/New_York').toString()}---------------------------------`);
 	};
+
+	// Closes any existing orders @ 3:58pm 
+	var trade = new CronJob(
+		"0 58 15 * * 1-5",
+		async function () {		
+			await alpaca.cancelAllOrders();
+			await alpaca.closeAllPositions();
+		},
+		null,
+		true,
+		"America/New_York"
+	);
 };
 
 /**-----------------------------------------------------------------------------------------------------------------------

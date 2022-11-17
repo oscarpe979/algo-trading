@@ -1,2 +1,4 @@
-- Cancel all positions @ 3:58pm
+- DONE - Cancel all positions @ 3:58pm
 - Check up against weekly and monthly pivots.
+- If orders FILL - we need to update the monitoring object to FILLED. 
+- If orders are SOLD, we need to update the monitoring object to NULL.
