@@ -76,7 +76,7 @@ const checkUpOneFourth = (currentBar, pivotPointsData) =>{
         //?????????????????????????????????????????? Buy 0.01% above the pivot point. Stop below 1%. Close positions @ 3.58 pm.
     else if(pivotPointsData.monitoring && 
             currentBar.c > pivotPointsData.monitoring.pointPrice && 
-            currentBar.h >= (pivotPointsData.monitoring.pointPrice + (pivotPointsData.monitoring.nextPivotPointPrice - pivotPointsData.monitoring.pointPrice)/4)){
+            currentBar.h >= (pivotPointsData.monitoring.pointPrice + (pivotPointsData.monitoring.nextPointPrice - pivotPointsData.monitoring.pointPrice)/4)){
                 PivotPoints.findOneAndUpdate(
                     { _id: currentBar.S },
                     {
