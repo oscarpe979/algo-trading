@@ -15,7 +15,8 @@ const alpacaOptions = {
 };
 
 const CASH_LIMIT_AVAILABLE_TO_BUY = 0.1; // Only 10% of the account is available to trade
-const ENTRY_POINT_TOLERANCE = 1.001; // Entries are 0.001% above the Pivot Point. The bigger the further up.
+const ENTRY_POINT_TOLERANCE = 1.001;
+const SELL_POINT_TOLERANCE = 0.9923;
 const STOP_LOSS_TOLERANCE = 0.995; // Stops are when price hits 99.1% of the Entry Price.
 
 /**-----------------------------------------------------------------------------------------------------------------------
@@ -28,7 +29,7 @@ const alpaca = new Alpaca(alpacaOptions);
 /*                                          HELPERS
 /*-----------------------------------------------------------------------------------------------------------------------*/
 
-const watch = (pivotPointName, pivotPointPrice, nextPivotPointPrice, bar, monitoring) => {        
+const monitor = (pivotPointName, pivotPointPrice, nextPivotPointPrice, bar, monitoring) => {        
     
     if(monitoring && monitoring.pointName === pivotPointName && monitoring.orderIDs) // If theres already orders in place for current pivot point, don't do anything.
         return;
@@ -50,8 +51,9 @@ const watch = (pivotPointName, pivotPointPrice, nextPivotPointPrice, bar, monito
     ).then((doc) => {        
         console.log(`Monitoring new ${pivotPointName} crossover in ${bar.S}. Time: ${moment().tz('America/New_York').toString()}`);        
         // Cancel Ticker Orders if there are any deriving from a previous monitoring. Only fires if there is orders of a lower Pivot Point.
-        if(monitoring.pointName != pivotPointName && monitoring.orderIDs){
-            cancelOrders(monitoring.orderIDs);
+        if(monitoring && monitoring.pointName != pivotPointName && monitoring.orderIDs){ 
+            // if (monitoring.orderIDs.buy.filled === false)
+            cancelOrders(monitoring.orderIDs);   
         }            
     }).catch(err=> console.log(`Error creating monitoring Object for ${bar.S}: ` + err));
 }
@@ -106,7 +108,7 @@ const checkForCrossover = (currentBar, pivotPointsData) => {
     // Current Bar crossing S3
     if (currentBar.o <= pivotPoints.dailyPivotPoints.s3 && currentBar.c > pivotPoints.dailyPivotPoints.s3) {      
         console.log(currentBar.S + ' Crossed S3');
-        watch('s3', pivotPoints.dailyPivotPoints.s3, pivotPoints.dailyPivotPoints.s2, currentBar, pivotPointsData.monitoring);     
+        monitor('s3', pivotPoints.dailyPivotPoints.s3, pivotPoints.dailyPivotPoints.s2, currentBar, pivotPointsData.monitoring);     
     }
 
     // Current Bar crossing S2 
@@ -115,7 +117,7 @@ const checkForCrossover = (currentBar, pivotPointsData) => {
         currentBar.o <= pivotPoints.dailyPivotPoints.s2 && currentBar.c > pivotPoints.dailyPivotPoints.s2
     ) {        
         console.log(currentBar.S + ' Crossed S2');
-        watch('s2', pivotPoints.dailyPivotPoints.s2, pivotPoints.dailyPivotPoints.s1, currentBar, pivotPointsData.monitoring);
+        monitor('s2', pivotPoints.dailyPivotPoints.s2, pivotPoints.dailyPivotPoints.s1, currentBar, pivotPointsData.monitoring);
     } 
 
     // Current Bar crossing S1
@@ -124,7 +126,7 @@ const checkForCrossover = (currentBar, pivotPointsData) => {
         currentBar.o <= pivotPoints.dailyPivotPoints.s1 && currentBar.c > pivotPoints.dailyPivotPoints.s1
     ) {
         console.log(currentBar.S + ' Crossed S1');
-        watch('s1', pivotPoints.dailyPivotPoints.s1, pivotPoints.dailyPivotPoints.pivot, currentBar, pivotPointsData.monitoring);  
+        monitor('s1', pivotPoints.dailyPivotPoints.s1, pivotPoints.dailyPivotPoints.pivot, currentBar, pivotPointsData.monitoring);  
     } 
     
     // Current Bar crossing PIVOT
@@ -133,7 +135,7 @@ const checkForCrossover = (currentBar, pivotPointsData) => {
         currentBar.o <= pivotPoints.dailyPivotPoints.pivot && currentBar.c > pivotPoints.dailyPivotPoints.pivot
     ) {
         console.log(currentBar.S + ' Crossed Pivot');
-        watch('pivot', pivotPoints.dailyPivotPoints.pivot, pivotPoints.dailyPivotPoints.r1, currentBar, pivotPointsData.monitoring);  
+        monitor('pivot', pivotPoints.dailyPivotPoints.pivot, pivotPoints.dailyPivotPoints.r1, currentBar, pivotPointsData.monitoring);  
     } 
     
     // Current Bar crossing R1
@@ -142,7 +144,7 @@ const checkForCrossover = (currentBar, pivotPointsData) => {
         currentBar.o <= pivotPoints.dailyPivotPoints.r1 && currentBar.c > pivotPoints.dailyPivotPoints.r1
     ) {
         console.log(currentBar.S + ' Crossed R1');
-        watch('r1', pivotPoints.dailyPivotPoints.r1, pivotPoints.dailyPivotPoints.r2, currentBar, pivotPointsData.monitoring);  
+        monitor('r1', pivotPoints.dailyPivotPoints.r1, pivotPoints.dailyPivotPoints.r2, currentBar, pivotPointsData.monitoring);  
     } 
     
     // Current Bar crossing R2
@@ -151,7 +153,7 @@ const checkForCrossover = (currentBar, pivotPointsData) => {
         currentBar.o <= pivotPoints.dailyPivotPoints.r2 && currentBar.c > pivotPoints.dailyPivotPoints.r2
     ) {
         console.log(currentBar.S + ' Crossed R2');
-        watch('r2', pivotPoints.dailyPivotPoints.r2, pivotPoints.dailyPivotPoints.r3, currentBar, pivotPointsData.monitoring);  
+        monitor('r2', pivotPoints.dailyPivotPoints.r2, pivotPoints.dailyPivotPoints.r3, currentBar, pivotPointsData.monitoring);  
     } 
     
     // Current Bar crossing R3
@@ -164,7 +166,7 @@ const checkForCrossover = (currentBar, pivotPointsData) => {
 }
 
 const cancelOrders = (orderIDs) => {
-    
+
 }
 
 const createBracketOrder = (ticker, monitoring) => {
@@ -180,7 +182,7 @@ const createBracketOrder = (ticker, monitoring) => {
                 limit_price: parseFloat((monitoring.pointPrice*ENTRY_POINT_TOLERANCE).toFixed(2)), // 0.0005% above our monitored pivot point. Rounded to 2 decimal places.
                 order_class: 'bracket',
                 take_profit: {
-                    "limit_price": monitoring.nextPointPrice
+                    "limit_price": parseFloat((monitoring.nextPointPrice*SELL_POINT_TOLERANCE).toFixed(2))
                 },
                 stop_loss: {
                     "stop_price": parseFloat(monitoring.pointPrice*STOP_LOSS_TOLERANCE).toFixed(2), // Sell if price falls below 1% of the entry price.
@@ -203,16 +205,14 @@ const createBracketOrder = (ticker, monitoring) => {
                     
                 }).catch(err=> console.log(`Error updating orderIDs for ${ticker}: ` + err));
             })
-        })
-
-        
-
+        })      
 }
 
 /**-----------------------------------------------------------------------------------------------------------------------
 /*                                          LOGIC
 /*-----------------------------------------------------------------------------------------------------------------------*/
 
+// Executes every 60s when Alpaca Socket sends a bar.
 export const checkOportunities = (currentBar, pivotPointsData) => {
     // Checks if there has been a crossover. If there has been, creates a monitoring object for the ticker in MongoDB.
     checkForCrossover(currentBar, pivotPointsData);
