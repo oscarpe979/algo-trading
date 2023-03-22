@@ -60,7 +60,7 @@ const monitor = (pivotPointName, pivotPointPrice, nextPivotPointPrice, bar, moni
 
 const checkUpOneFourth = (currentBar, pivotPointsData) =>{
 
-    // If monitoring object is null OR there are orders put in place => dont do anything
+    // If monitoring object is null => dont do anything
     if(!pivotPointsData.monitoring)        
         return;
     
@@ -97,7 +97,7 @@ const checkUpOneFourth = (currentBar, pivotPointsData) =>{
                     console.log(`${currentBar.S} has reached one fourth up. Time: ${moment().tz('America/New_York').toString()}`);   
                     // Create Bracket order using Alpaca     
                     createBracketOrder(currentBar.S, pivotPointsData.monitoring)  
-                }).catch(err=> console.log(`Error creating monitoring Object for ${bar.S}: ` + err));  
+                }).catch(err=> console.log(`Error updating monitoring.upOneFourth Object for ${bar.S}: ` + err));  
     }
 }
 
