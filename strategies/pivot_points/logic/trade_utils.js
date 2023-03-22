@@ -31,8 +31,11 @@ const alpaca = new Alpaca(alpacaOptions);
 
 const monitor = (pivotPointName, pivotPointPrice, nextPivotPointPrice, bar, monitoring) => {        
     
-    if(monitoring && monitoring.pointName === pivotPointName && monitoring.orderIDs) // If theres already orders in place for current pivot point, don't do anything.
+    // If theres already orders in place for current pivot point, don't do anything.
+    if(monitoring && monitoring.pointName === pivotPointName && monitoring.orderIDs){
+        console.log("There are already bracket orders in place for " + pivotPointName)
         return;
+    }   
 
     PivotPoints.findOneAndUpdate(
         { _id: bar.S },
@@ -55,7 +58,11 @@ const monitor = (pivotPointName, pivotPointPrice, nextPivotPointPrice, bar, moni
             // if (monitoring.orderIDs.buy.filled === false)
             cancelOrders(monitoring.orderIDs);   
         }            
-    }).catch(err=> console.log(`Error creating monitoring Object for ${bar.S}: ` + err));
+    }).catch(err => {
+        console.log(`Error creating monitoring Object for ${bar.S}: ` + err)
+        console.log('monitoring: ' + monitoring)
+        console.log('pivotPointName: ' + pivotPointName)
+    });
 }
 
 const checkUpOneFourth = (currentBar, pivotPointsData) =>{
@@ -94,7 +101,8 @@ const checkUpOneFourth = (currentBar, pivotPointsData) =>{
                         },
                     }
                 ).then((doc) => {        
-                    console.log(`${currentBar.S} has reached one fourth up. Time: ${moment().tz('America/New_York').toString()}`);   
+                    console.log(`${currentBar.S} has reached one fourth up. Time: ${moment().tz('America/New_York').toString()}`);
+
                     // Create Bracket order using Alpaca     
                     createBracketOrder(currentBar.S, pivotPointsData.monitoring)  
                 }).catch(err=> console.log(`Error updating monitoring.upOneFourth Object for ${bar.S}: ` + err));  
@@ -203,7 +211,9 @@ const createBracketOrder = (ticker, monitoring) => {
                 ).then((doc) => {        
                     console.log(`${ticker} orderIDs have been updated. Time: ${moment().tz('America/New_York').toString()}`);   
                     
-                }).catch(err=> console.log(`Error updating orderIDs for ${ticker}: ` + err));
+                }).catch(err=> {
+                    console.log(`Error updating orderIDs for ${ticker}: ` + err)                    
+                });
             })
         })      
 }
