@@ -29,13 +29,11 @@ const alpaca = new Alpaca(alpacaOptions);
 /*                                          HELPERS
 /*-----------------------------------------------------------------------------------------------------------------------*/
 
-const monitor = (pivotPointName, pivotPointPrice, nextPivotPointPrice, bar, monitoring) => {        
+const monitor = (pivotPointName, pivotPointPrice, nextPivotPointPrice, bar, monitoring) => {      
     
     // If theres already orders in place for current pivot point, don't do anything.
-    if(monitoring && monitoring.pointName === pivotPointName && monitoring.orderIDs){
-        console.log("There are already bracket orders in place for " + pivotPointName)
-        return;
-    }   
+    if(monitoring && monitoring.pointName === pivotPointName && monitoring.orderIDs)
+        return; 
 
     PivotPoints.findOneAndUpdate(
         { _id: bar.S },
@@ -52,30 +50,29 @@ const monitor = (pivotPointName, pivotPointPrice, nextPivotPointPrice, bar, moni
             },
         }
     ).then((doc) => {        
-        console.log(`Monitoring new ${pivotPointName} crossover in ${bar.S}. Time: ${moment().tz('America/New_York').toString()}`);        
+        console.log(`Monitoring new ${pivotPointName} crossover in ${bar.S}. Time: ${moment().tz('America/New_York').toString()}`);  
+            
         // Cancel Ticker Orders if there are any deriving from a previous monitoring. Only fires if there is orders of a lower Pivot Point.
-        if(monitoring && monitoring.pointName != pivotPointName && monitoring.orderIDs){ 
-            // if (monitoring.orderIDs.buy.filled === false)
+        if(monitoring && monitoring.pointName != pivotPointName && monitoring.orderIDs){         
+            console.log("Orders for " + monitoring.pointName + "have been canceled.")
             cancelOrders(monitoring.orderIDs);   
-        }            
+        }     
+                    
     }).catch(err => {
         console.log(`Error creating monitoring Object for ${bar.S}: ` + err)
         console.log('monitoring: ' + monitoring)
         console.log('pivotPointName: ' + pivotPointName)
     });
+         
 }
 
 const checkUpOneFourth = (currentBar, pivotPointsData) =>{
 
-    // If monitoring object is null => dont do anything
-    if(!pivotPointsData.monitoring)        
+    // If monitoring object doesn't exit OR if there are orders already put in place, don't do anything.
+    if(!pivotPointsData.monitoring || pivotPointsData.monitoring.orderIDs)        
         return;
-    
-    // If monitoring object exists and there are orders already put in place => dont do anything
-    if((pivotPointsData.monitoring && pivotPointsData.monitoring.orderIDs))
-        return;
-       
-    // If monitoring object exists and theres no orders in place then check if bar.c < monitoring.pointPrice. If true delete monitoring object.
+           
+    // If bar.c < monitoring.pointPrice, delete monitoring object.
     if(currentBar.c < pivotPointsData.monitoring.pointPrice) {
         PivotPoints.findOneAndUpdate(
             { _id: currentBar.S },
@@ -85,12 +82,12 @@ const checkUpOneFourth = (currentBar, pivotPointsData) =>{
                 },
             }
         ).then((doc) => {        
+            console.log(`Price of ${currentBar.S} went below ${pivotPointsData.monitoring.pointPrice} - ${pivotPointsData.monitoring.pointName}`); 
             console.log(`No longer monitoring ${currentBar.S}. Time: ${moment().tz('America/New_York').toString()}`); 
-        }).catch(err=> console.log(`Error deleting monitoring Object for ${bar.S}: ` + err));             
+        }).catch(err=> console.log(`Error deleting monitoring Object for ${currentBar.S}: ` + err));             
     }
 
-    // If the price is up one fourth, place an order just in front of the pivot point.  
-    // Buy 0.0005% above the pivot point. Stop below 1%. Close positions @ 3.58 pm.
+    // If the price is up one fourth, place an order just in front of the pivot point.
     else if(currentBar.c > pivotPointsData.monitoring.pointPrice && 
             currentBar.h >= (pivotPointsData.monitoring.pointPrice + (pivotPointsData.monitoring.nextPointPrice - pivotPointsData.monitoring.pointPrice)/4)){
                 PivotPoints.findOneAndUpdate(
@@ -209,7 +206,7 @@ const createBracketOrder = (ticker, monitoring) => {
                         },
                     }
                 ).then((doc) => {        
-                    console.log(`${ticker} orderIDs have been updated. Time: ${moment().tz('America/New_York').toString()}`);   
+                    console.log(`Orders created for ${ticker}. OrderIDs have been updated. Time: ${moment().tz('America/New_York').toString()}`);   
                     
                 }).catch(err=> {
                     console.log(`Error updating orderIDs for ${ticker}: ` + err)                    
