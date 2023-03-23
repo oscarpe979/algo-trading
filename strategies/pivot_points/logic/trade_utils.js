@@ -15,9 +15,9 @@ const alpacaOptions = {
 };
 
 const CASH_LIMIT_AVAILABLE_TO_BUY = 0.1; // Only 10% of the account is available to trade
-const ENTRY_POINT_TOLERANCE = 1.001;
-const SELL_POINT_TOLERANCE = 0.9923;
-const STOP_LOSS_TOLERANCE = 0.995; // Stops are when price hits 99.1% of the Entry Price.
+const ENTRY_POINT_TOLERANCE = 0.05; // 5 cents over the point.
+const SELL_POINT_TOLERANCE = 0.05; // 5 cents under the point.
+const STOP_LOSS_RISK_REWARD_RATIO = 1/3; // Stops are when price hits 99.1% of the Entry Price.
 
 /**-----------------------------------------------------------------------------------------------------------------------
 /*                                          INITIALIZERS
@@ -184,15 +184,17 @@ const createBracketOrder = (ticker, monitoring) => {
                 side: 'buy',
                 type: 'limit',
                 time_in_force: 'day',
-                limit_price: parseFloat((monitoring.pointPrice*ENTRY_POINT_TOLERANCE).toFixed(2)), // 0.0005% above our monitored pivot point. Rounded to 2 decimal places.
+                limit_price: parseFloat((monitoring.pointPrice + ENTRY_POINT_TOLERANCE).toFixed(2)), // 0.0005% above our monitored pivot point. Rounded to 2 decimal places.
                 order_class: 'bracket',
                 take_profit: {
-                    "limit_price": parseFloat((monitoring.nextPointPrice*SELL_POINT_TOLERANCE).toFixed(2))
+                    "limit_price": parseFloat((monitoring.nextPointPrice - SELL_POINT_TOLERANCE).toFixed(2))
                 },
                 stop_loss: {
-                    "stop_price": parseFloat(monitoring.pointPrice*STOP_LOSS_TOLERANCE).toFixed(2), // Sell if price falls below 1% of the entry price.
+                    "stop_price": parseFloat(monitoring.pointPrice - ((monitoring.nextPivotPointPrice - monitoring.PivotPoints)*STOP_LOSS_RISK_REWARD_RATIO)).toFixed(2), // Sell if price falls below 1% of the entry price.
                 }
             }).then( order => {
+                console.log(`Orders created for ${ticker}. Time: ${moment().tz('America/New_York').toString()}`);
+                console.log(`Orders Data: ${order}.`);
                 // Update orderIDs in monitoring object
                 PivotPoints.findOneAndUpdate(
                     { _id: ticker },
@@ -206,7 +208,7 @@ const createBracketOrder = (ticker, monitoring) => {
                         },
                     }
                 ).then((doc) => {        
-                    console.log(`Orders created for ${ticker}. OrderIDs have been updated. Time: ${moment().tz('America/New_York').toString()}`);   
+                    console.log(`OrderIDs for ${ticker} have been updated in database. Time: ${moment().tz('America/New_York').toString()}`);   
                     
                 }).catch(err=> {
                     console.log(`Error updating orderIDs for ${ticker}: ` + err)                    
