@@ -9,6 +9,18 @@ import mongoose from "mongoose";
 import pivotPointsStrategy from "./strategies/pivot_points/pivot_points.js";
 
 /** --------------------------------------------------------------------------------------------------------------------
+ *                                          TESTS
+ -----------------------------------------------------------------------------------------------------------------------*/
+// import Alpaca from "@alpacahq/alpaca-trade-api";
+// const alpacaOptions = {
+// 	keyId: process.env.ALPACA_KEY_ID,
+// 	secretKey: process.env.ALPACA_SECRET_KEY,
+// 	paper: true,
+// };
+
+// const alpaca = new Alpaca(alpacaOptions);
+
+/** --------------------------------------------------------------------------------------------------------------------
  *                                          INITIALIZERS
  -----------------------------------------------------------------------------------------------------------------------*/
 // Environment Variables
