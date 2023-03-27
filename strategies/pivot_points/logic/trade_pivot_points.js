@@ -61,6 +61,7 @@ const tradePivotPoints = (tickers) => {
 		else if (data[0].T === "success" && message === "authenticated") {
 			// Subscribe
 			socketClient.send(JSON.stringify(subscriptionMessage));
+			console.log('Websocket authenticated & connected.')
 		}
 
 		// Getting Trades Data!
@@ -74,7 +75,8 @@ const tradePivotPoints = (tickers) => {
 
 					// Closes the socket @ 3:30pm EST Mon - Fri
 					if (currentBar.t && barsHour >= 15 && barsMinute >= 30) {
-						socketClient.close();						
+						socketClient.close();	
+						console.log("It's time to close the Strategy...")					
 						break;
 					}
 
@@ -102,6 +104,7 @@ const tradePivotPoints = (tickers) => {
 		async function () {		
 			await alpaca.cancelAllOrders();
 			await alpaca.closeAllPositions();
+			console.log("All orders have been canceled. All positions have been closed.")
 		},
 		null,
 		true,

@@ -1,4 +1,6 @@
 - DONE - Cancel all positions @ 3:58pm
 - Check up against weekly and monthly pivots.
 - If orders are SOLD, we need to update the monitoring object to NULL.
-- Agregar mensaje de confirmacion cuando se cancelen y liquiden ordenes al final del dia.
+- DONE - Agregar mensaje de confirmacion cuando se cancelen y liquiden ordenes al final del dia.
+- Implementar websockets para tener info de los trades.
+- Pivotes del lunes no funcionan.
