@@ -176,7 +176,7 @@ const createBracketOrder = (ticker, pointPrice, nextPointPrice) => {
         .then( account => {
             alpaca.createOrder({
                 symbol: ticker,
-                qty: Math.ceil(account.non_marginable_buying_power*CASH_LIMIT_AVAILABLE_TO_BUY/parseFloat((pointPrice*ENTRY_POINT_TOLERANCE).toFixed(2))), // calculate quantity to buy.
+                qty: Math.ceil(account.non_marginable_buying_power*CASH_LIMIT_AVAILABLE_TO_BUY/parseFloat((pointPrice + ENTRY_POINT_TOLERANCE).toFixed(2))), // calculate quantity to buy.
                 side: 'buy',
                 type: 'limit',
                 time_in_force: 'day',
@@ -190,7 +190,7 @@ const createBracketOrder = (ticker, pointPrice, nextPointPrice) => {
                 }
             }).then( order => {
                 console.log(`Orders created for ${ticker}. Time: ${moment().tz('America/New_York').toString()}`);
-                console.log(`Orders Data: ${order}.`);
+                console.log(`Orders Data: ${JSON.stringify(order)}.`);
                 // Update orderIDs in monitoring object
                 PivotPoints.findOneAndUpdate(
                     { _id: ticker },
@@ -231,8 +231,7 @@ const isOrderOpen = async (orderID) => {
 
 // Executes every 60s when Alpaca Socket sends a bar.
 export const checkOportunities = async (currentBar, pivotPointsData) => {
-    if(!pivotPointsData.monitoring){
-        // Checks if there has been a crossover. If there has been, creates a monitoring object for the ticker in MongoDB.
+    if(!pivotPointsData.monitoring){        
         checkForCrossover(currentBar, pivotPointsData);
     }
     
