@@ -98,7 +98,7 @@ const checkUpOneFourthOldMonitoring = (currentBar, pivotPointsData) =>{
 }
 
 const checkForCrossover = (currentBar, pivotPointsData) => {
-
+    
     let pivotPoints = pivotPointsData.pivotPoints;    
 
     // Current Bar crossing S3
@@ -145,7 +145,7 @@ const checkForCrossover = (currentBar, pivotPointsData) => {
     
     // Current Bar crossing R2
     else if (
-        currentBar.o > pivotPoints.dailyPivotPoints.ri &&
+        currentBar.o > pivotPoints.dailyPivotPoints.r1 &&
         currentBar.o <= pivotPoints.dailyPivotPoints.r2 && currentBar.c > pivotPoints.dailyPivotPoints.r2
     ) {
         console.log(currentBar.S + ' Crossed R2');
@@ -216,11 +216,13 @@ const createBracketOrder = (ticker, pointPrice, nextPointPrice) => {
 const isThereOpenOrders = async (orderIDs) => {
     let profitOrder = await alpaca.getOrder(orderIDs.profit)
 	let stopOrder = await alpaca.getOrder(orderIDs.stop)
+    //console.log(`Orders in ${profitOrder.symbol} are open? ${(profitOrder.filled_at == null && stopOrder.filled_at == null)}`)
 	return await profitOrder.filled_at == null && stopOrder.filled_at == null
 }
 
 const isOrderOpen = async (orderID) => {
     let order = await alpaca.getOrder(orderID);
+    //console.log(`Is ${orderID.symbol} still in Position? ${(order.filled_at == null)}`)
     return order.filled_at == null;
 }
 
