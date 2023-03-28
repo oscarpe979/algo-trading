@@ -112,6 +112,28 @@ const tradePivotPoints = (tickers) => {
 	);
 };
 
+const test_tradePivotPoints = (tickers) => {
+	console.log(`Starting day to Trade Pivot Points ----------------------------------${moment().tz('America/New_York').toString()}---------------------------------`);
+	const currentBar = {
+		T: 'b',
+		S: 'QQQ',
+		o: 310.36,
+		h: 310.39,
+		c: 310.25,
+		t: '2023-03-27T17:34:00Z',
+	}
+	PivotPoints.find().then((ppData) => {
+			// TRAAAAAAADDE----------------------------------------------------------------
+			// Get all Pivot Points
+			let tickerPivotPointsData = ppData.find(
+				(tickerPp) => tickerPp._id === currentBar.S
+			);					
+			
+			// Constantly checks if there's a Oportunities and executes them.					
+			checkOportunities(currentBar, tickerPivotPointsData);				
+	});	
+};
+
 /**-----------------------------------------------------------------------------------------------------------------------
 /*                                          EXPORT
 /*-----------------------------------------------------------------------------------------------------------------------*/
