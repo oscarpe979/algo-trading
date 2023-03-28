@@ -29,7 +29,7 @@ const alpaca = new Alpaca(alpacaOptions);
 /*                                          HELPERS
 /*-----------------------------------------------------------------------------------------------------------------------*/
 
-const monitor = (pivotPointName, pointPrice, nextPointPrice, bar) => {      
+const monitor = async (pivotPointName, pointPrice, nextPointPrice, bar) => {      
     
     PivotPoints.findOneAndUpdate(
         { _id: bar.S },
@@ -45,9 +45,9 @@ const monitor = (pivotPointName, pointPrice, nextPointPrice, bar) => {
                 },                
             },
         }
-    ).then((doc) => {        
+    ).then(async (doc) => {        
         console.log(`Monitoring new ${pivotPointName} crossover in ${bar.S}. Time: ${moment().tz('America/New_York').toString()}...`);  
-        checkUpOneFourthNewMonitoring(bar, pointPrice, nextPointPrice)       
+        await checkUpOneFourthNewMonitoring(bar, pointPrice, nextPointPrice)       
                     
     }).catch(err => {
         console.log(`Error creating monitoring Object for ${bar.S}: ` + err)
@@ -56,7 +56,7 @@ const monitor = (pivotPointName, pointPrice, nextPointPrice, bar) => {
          
 }
 
-const checkUpOneFourthNewMonitoring = (currentBar, pointPrice, nextPointPrice) =>{            
+const checkUpOneFourthNewMonitoring = async (currentBar, pointPrice, nextPointPrice) =>{            
        // If the price is up one fourth, place an order just in front of the pivot point.
     if(currentBar.c > pointPrice && 
             currentBar.h >= (pointPrice + (nextPointPrice - pointPrice)/4)){
@@ -67,10 +67,10 @@ const checkUpOneFourthNewMonitoring = (currentBar, pointPrice, nextPointPrice) =
                             "monitoring.upOneFourth": true,               
                         },
                     }
-                ).then((doc) => {        
+                ).then(async (doc) => {        
                     console.log(`${currentBar.S} has reached one fourth up. Time: ${moment().tz('America/New_York').toString()}`);
                     // Create Bracket order using Alpaca     
-                    createBracketOrder(currentBar.S, pointPrice, nextPointPrice)  
+                    await createBracketOrder(currentBar.S, pointPrice, nextPointPrice)  
                 }).catch(err=> console.log(`Error updating monitoring.upOneFourth Object for ${bar.S}: ` + err));  
     }
     else{
@@ -79,7 +79,7 @@ const checkUpOneFourthNewMonitoring = (currentBar, pointPrice, nextPointPrice) =
     }
 }
 
-const checkUpOneFourthOldMonitoring = (currentBar, pivotPointsData) =>{            
+const checkUpOneFourthOldMonitoring = async (currentBar, pivotPointsData) =>{            
     // If the price is up one fourth, place an order just in front of the pivot point.
     if(currentBar.c > pivotPointsData.monitoring.pointPrice && 
             currentBar.h >= (pivotPointsData.monitoring.pointPrice + (pivotPointsData.monitoring.nextPointPrice - pivotPointsData.monitoring.pointPrice)/4)){
@@ -90,26 +90,26 @@ const checkUpOneFourthOldMonitoring = (currentBar, pivotPointsData) =>{
                             "monitoring.upOneFourth": true,               
                         },
                     }
-                ).then((doc) => {        
+                ).then(async (doc) => {        
                     console.log(`${currentBar.S} has reached one fourth up (after old monitoring). Time: ${moment().tz('America/New_York').toString()}`);
                     // Create Bracket order using Alpaca     
-                    createBracketOrder(currentBar.S, pivotPointsData.monitoring.pointPrice, pivotPointsData.monitoring.nextPointPrice)  
+                    await createBracketOrder(currentBar.S, pivotPointsData.monitoring.pointPrice, pivotPointsData.monitoring.nextPointPrice)  
                 }).catch(err=> console.log(`Error updating monitoring.upOneFourth Object for ${bar.S}: ` + err));  
     }
     else{
         console.log('This bar has not reached 1/4 up...')
-        checkForCrossover(currentBar, pivotPointsData)
+        await checkForCrossover(currentBar, pivotPointsData)
     }
 }
 
-const checkForCrossover = (currentBar, pivotPointsData) => {
+const checkForCrossover = async (currentBar, pivotPointsData) => {
     console.log("Checking crossover...")
     let pivotPoints = pivotPointsData.pivotPoints;    
 
     // Current Bar crossing S3
     if (currentBar.o <= pivotPoints.dailyPivotPoints.s3 && currentBar.c > pivotPoints.dailyPivotPoints.s3) {      
         console.log(currentBar.S + ' Crossed S3. Time: ' + moment().tz('America/New_York').toString());
-        monitor('s3', pivotPoints.dailyPivotPoints.s3, pivotPoints.dailyPivotPoints.s2, currentBar);     
+        await monitor('s3', pivotPoints.dailyPivotPoints.s3, pivotPoints.dailyPivotPoints.s2, currentBar);     
     }
 
     // Current Bar crossing S2 
@@ -118,7 +118,7 @@ const checkForCrossover = (currentBar, pivotPointsData) => {
         currentBar.o <= pivotPoints.dailyPivotPoints.s2 && currentBar.c > pivotPoints.dailyPivotPoints.s2
     ) {        
         console.log(currentBar.S + ' Crossed S2. Time: ' + moment().tz('America/New_York').toString());
-        monitor('s2', pivotPoints.dailyPivotPoints.s2, pivotPoints.dailyPivotPoints.s1, currentBar);
+        await monitor('s2', pivotPoints.dailyPivotPoints.s2, pivotPoints.dailyPivotPoints.s1, currentBar);
     } 
 
     // Current Bar crossing S1
@@ -127,7 +127,7 @@ const checkForCrossover = (currentBar, pivotPointsData) => {
         currentBar.o <= pivotPoints.dailyPivotPoints.s1 && currentBar.c > pivotPoints.dailyPivotPoints.s1
     ) {
         console.log(currentBar.S + ' Crossed S1. Time: ' + moment().tz('America/New_York').toString());
-        monitor('s1', pivotPoints.dailyPivotPoints.s1, pivotPoints.dailyPivotPoints.pivot, currentBar);  
+        await monitor('s1', pivotPoints.dailyPivotPoints.s1, pivotPoints.dailyPivotPoints.pivot, currentBar);  
     } 
     
     // Current Bar crossing PIVOT
@@ -136,7 +136,7 @@ const checkForCrossover = (currentBar, pivotPointsData) => {
         currentBar.o <= pivotPoints.dailyPivotPoints.pivot && currentBar.c > pivotPoints.dailyPivotPoints.pivot
     ) {
         console.log(currentBar.S + ' Crossed Pivot. Time: ' + moment().tz('America/New_York').toString());
-        monitor('pivot', pivotPoints.dailyPivotPoints.pivot, pivotPoints.dailyPivotPoints.r1, currentBar);  
+        await monitor('pivot', pivotPoints.dailyPivotPoints.pivot, pivotPoints.dailyPivotPoints.r1, currentBar);  
     } 
     
     // Current Bar crossing R1
@@ -145,7 +145,7 @@ const checkForCrossover = (currentBar, pivotPointsData) => {
         currentBar.o <= pivotPoints.dailyPivotPoints.r1 && currentBar.c > pivotPoints.dailyPivotPoints.r1
     ) {
         console.log(currentBar.S + ' Crossed R1. Time: ' + moment().tz('America/New_York').toString());
-        monitor('r1', pivotPoints.dailyPivotPoints.r1, pivotPoints.dailyPivotPoints.r2, currentBar);  
+        await monitor('r1', pivotPoints.dailyPivotPoints.r1, pivotPoints.dailyPivotPoints.r2, currentBar);  
     } 
     
     // Current Bar crossing R2
@@ -154,7 +154,7 @@ const checkForCrossover = (currentBar, pivotPointsData) => {
         currentBar.o <= pivotPoints.dailyPivotPoints.r2 && currentBar.c > pivotPoints.dailyPivotPoints.r2
     ) {
         console.log(currentBar.S + ' Crossed R2. Time: ' + moment().tz('America/New_York').toString());
-        monitor('r2', pivotPoints.dailyPivotPoints.r2, pivotPoints.dailyPivotPoints.r3, currentBar);  
+        await monitor('r2', pivotPoints.dailyPivotPoints.r2, pivotPoints.dailyPivotPoints.r3, currentBar);  
     } 
     
     // Current Bar crossing R3
@@ -180,10 +180,10 @@ const cancelOrders = async (ticker, orderIDs) => {
     }  
 }
 
-const createBracketOrder = (ticker, pointPrice, nextPointPrice) => {
+const createBracketOrder = async (ticker, pointPrice, nextPointPrice) => {
 
     alpaca.getAccount()
-        .then( account => {
+        .then( async (account) => {
             alpaca.createOrder({
                 symbol: ticker,
                 qty: Math.ceil(account.non_marginable_buying_power*CASH_LIMIT_AVAILABLE_TO_BUY/parseFloat((pointPrice + ENTRY_POINT_TOLERANCE).toFixed(2))), // calculate quantity to buy.
@@ -198,7 +198,7 @@ const createBracketOrder = (ticker, pointPrice, nextPointPrice) => {
                 stop_loss: {
                     "stop_price": parseFloat(pointPrice - ((nextPointPrice - pointPrice)*STOP_LOSS_RISK_REWARD_RATIO)).toFixed(2), // Sell if price falls below 1% of the entry price.
                 }
-            }).then( order => {
+            }).then( async (order) => {
                 console.log(`Orders created for ${ticker}. Time: ${moment().tz('America/New_York').toString()}`);
                 // console.log(`Orders Data: ${JSON.stringify(order)}.`);
                 // Update orderIDs in monitoring object
@@ -248,7 +248,7 @@ export const checkOportunities = async (currentBar, pivotPointsData) => {
     console.log(currentBar)
     if(!pivotPointsData.monitoring){
         console.log('No previous monitoring...')        
-        checkForCrossover(currentBar, pivotPointsData);
+        await checkForCrossover(currentBar, pivotPointsData);
     }
     
     else {
@@ -265,7 +265,7 @@ export const checkOportunities = async (currentBar, pivotPointsData) => {
                     if(currentBar.c > pivotPointsData.monitoring.nextPointPrice){
                         console.log('Current bar has crossed next pivot point...')
                         await cancelOrders(currentBar.S, pivotPointsData.monitoring.orderIDs);
-                        checkForCrossover(currentBar, pivotPointsData);
+                        await checkForCrossover(currentBar, pivotPointsData);
                     } 
                     else{
                         console.log('Waiting for price drop to start a position.')
@@ -275,12 +275,12 @@ export const checkOportunities = async (currentBar, pivotPointsData) => {
             }
             else{
                 console.log('Orders are closed...')
-                checkForCrossover(currentBar, pivotPointsData);
+                await checkForCrossover(currentBar, pivotPointsData);
             }
         }
         else{    
             console.log('No orders put in place yet...')           
-            checkUpOneFourthOldMonitoring(currentBar, pivotPointsData)
+            await checkUpOneFourthOldMonitoring(currentBar, pivotPointsData)
         }                      
     }    
 }
