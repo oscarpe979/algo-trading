@@ -25,10 +25,10 @@ const alpaca = new Alpaca(options);
  * @returns Last DAILY bar available
  */
 export const getLastDailyBar = async (symbol) => {
-	const snapshot = (await alpaca.getSnapshot(symbol))
+	const snapshot = (await alpaca.getSnapshot(symbol))	
 	// Alpaca SDK call
 	const bars = alpaca.getBarsV2(symbol, {
-		start: snapshot.PrevDailyBar.Timestamp,
+		start: snapshot.DailyBar.Timestamp,
 		timeframe: alpaca.newTimeframe(1, alpaca.timeframeUnit.DAY),
 		limit: 1,
 	});
