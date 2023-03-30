@@ -69,7 +69,8 @@ const tradePivotPoints = (tickers) => {
 			// Find Pivot Points Info
 			PivotPoints.find().then(async (ppData) => {
 				//Iterate over socket Data Points
-				for (let currentBar of data) {
+				for (let i = 0; i < data.length; i++) {
+					let currentBar = data[i];
 					let barsHour = moment(currentBar.t).tz("America/New_York").hour();
 					let barsMinute = moment(currentBar.t).tz("America/New_York").minute();
 
@@ -86,8 +87,11 @@ const tradePivotPoints = (tickers) => {
 						(tickerPp) => tickerPp._id === currentBar.S
 					);					
 					
+					console.log('------------------------------------------------------------------')
+            		console.log(currentBar)
 					// Constantly checks if there's a Oportunities and executes them.					
-					await checkOportunities(currentBar, tickerPivotPointsData);						
+					await checkOportunities(currentBar, tickerPivotPointsData);	
+					console.log('------------------------------------------------------------------')									
 				}
 			});
 		}
