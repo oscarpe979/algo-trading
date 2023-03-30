@@ -225,14 +225,13 @@ const isThereOpenOrders = async (orderIDs) => {
     let profitOrder = await alpaca.getOrder(orderIDs.profit)
 	let stopOrder = await alpaca.getOrder(orderIDs.stop)
     //console.log(`Orders in ${profitOrder.symbol} are open? ${(profitOrder.filled_at == null && stopOrder.filled_at == null)}`)
-	return await profitOrder.filled_at == null && stopOrder.filled_at == null
+	return profitOrder.filled_at == null && stopOrder.filled_at == null
 }
 
 const isOrderFilled = async (orderID) => {
     let order = await alpaca.getOrder(orderID);    
     return !(order.filled_at == null);
 }
-
 
 /**-----------------------------------------------------------------------------------------------------------------------
 /*                                          LOGIC
