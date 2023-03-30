@@ -75,7 +75,6 @@ const checkUpOneFourthNewMonitoring = async (currentBar, pointPrice, nextPointPr
     }
     else{
         console.log('This bar has not reached 1/4 up.')
-        console.log('------------------------------------------------------------------')
     }
 }
 
@@ -167,7 +166,6 @@ const checkForCrossover = async (currentBar, pivotPointsData) => {
     
     else{
         console.log('No crossover found.')
-        console.log('------------------------------------------------------------------')
     }
 }
 
@@ -214,12 +212,10 @@ const createBracketOrder = async (ticker, pointPrice, nextPointPrice) => {
                         },
                     }
                 ).then((doc) => {        
-                    console.log(`OrderIDs for ${ticker} have been updated in database. Time: ${moment().tz('America/New_York').toString()}`);   
-                    console.log('------------------------------------------------------------------')
+                    console.log(`OrderIDs for ${ticker} have been updated in database. Time: ${moment().tz('America/New_York').toString()}`);
                     
                 }).catch(err=> {
-                    console.log(`Error updating orderIDs for ${ticker}: ` + err)  
-                    console.log('------------------------------------------------------------------')                  
+                    console.log(`Error updating orderIDs for ${ticker}: ` + err)                
                 });
             })
         })      
@@ -243,9 +239,7 @@ const isOrderFilled = async (orderID) => {
 /*-----------------------------------------------------------------------------------------------------------------------*/
 
 // Executes every 60s when Alpaca Socket sends a bar.
-export const checkOportunities = async (currentBar, pivotPointsData) => {
-    console.log('------------------------------------------------------------------')
-    console.log(currentBar)
+export const checkOportunities = async (currentBar, pivotPointsData) => {    
     if(!pivotPointsData.monitoring){
         console.log('No previous monitoring...')        
         await checkForCrossover(currentBar, pivotPointsData);
@@ -258,8 +252,7 @@ export const checkOportunities = async (currentBar, pivotPointsData) => {
             if(await isThereOpenOrders(pivotPointsData.monitoring.orderIDs)){
                 console.log('Orders are still open...')
                 if( await isOrderFilled(pivotPointsData.monitoring.orderIDs.buy)){
-                    console.log('We are currently holding a position.')  
-                    console.log('------------------------------------------------------------------')                  
+                    console.log('We are currently holding a position.')                
                 }
                 else { 
                     if(currentBar.c > pivotPointsData.monitoring.nextPointPrice){
@@ -269,7 +262,6 @@ export const checkOportunities = async (currentBar, pivotPointsData) => {
                     } 
                     else{
                         console.log('Waiting for price drop to start a position.')
-                        console.log('------------------------------------------------------------------') 
                     }                   
                 }
             }
