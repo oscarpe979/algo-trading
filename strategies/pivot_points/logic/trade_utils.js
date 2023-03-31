@@ -238,7 +238,7 @@ const isOrderFilled = async (orderID) => {
 /*-----------------------------------------------------------------------------------------------------------------------*/
 
 // Executes every 60s when Alpaca Socket sends a bar.
-export const checkOportunities = async (currentBar, pivotPointsData) => {    
+export const checkOportunities = async (currentBar, pivotPointsData) => {
     if(!pivotPointsData.monitoring){
         console.log('No previous monitoring...')        
         await checkForCrossover(currentBar, pivotPointsData);
