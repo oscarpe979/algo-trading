@@ -66,6 +66,7 @@ const tradePivotPoints = (tickers) => {
 
 		// Getting Trades Data!
 		else if (data[0].T === "b") {
+			console.log('------------------------------------------------------------------')
 			// Find Pivot Points Info
 			PivotPoints.find().then(async (ppData) => {
 				//Iterate over socket Data Points
@@ -85,13 +86,11 @@ const tradePivotPoints = (tickers) => {
 					// Get all Pivot Points
 					let tickerPivotPointsData = ppData.find(
 						(tickerPp) => tickerPp._id === currentBar.S
-					);					
-					
-					console.log('------------------------------------------------------------------')
+					);	
+										
             		console.log(currentBar)
 					// Constantly checks if there's a Oportunities and executes them.					
-					await checkOportunities(currentBar, tickerPivotPointsData);	
-					console.log('------------------------------------------------------------------')									
+					await checkOportunities(currentBar, tickerPivotPointsData);									
 				}
 			});
 		}
