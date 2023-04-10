@@ -224,7 +224,8 @@ const createBracketOrder = async (ticker, pointPrice, nextPointPrice) => {
 const isThereOpenOrders = async (orderIDs) => {
     let profitOrder = await alpaca.getOrder(orderIDs.profit)
 	let stopOrder = await alpaca.getOrder(orderIDs.stop)
-	return profitOrder.filled_at == null && stopOrder.filled_at == null
+	return (profitOrder.filled_at == null && stopOrder.filled_at == null) &&
+            (profitOrder.canceled_at == null && stopOrder.canceled_at == null)
 }
 
 const isOrderFilled = async (orderID) => {
