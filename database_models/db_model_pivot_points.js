@@ -7,7 +7,7 @@ const PivotPointsSchema = new Schema({
 		required: true,
 	},
 
-	lastMinuteBar: {
+	latestMinuteBar: {
 		type: Object,
 		required: true,
 	},
