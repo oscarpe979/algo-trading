@@ -7,12 +7,12 @@ const PivotPointsSchema = new Schema({
 		required: true,
 	},
 
-	pivotPoints: {
+	lastMinuteBar: {
 		type: Object,
 		required: true,
 	},
-	
-	watching: {
+
+	pivotPoints: {
 		type: Object,
 		required: true,
 	},
