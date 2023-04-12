@@ -103,64 +103,53 @@ const checkUpOneFourthOldMonitoring = async (currentBar, pivotPointsData) =>{
 
 const checkForCrossover = async (currentBar, pivotPointsData) => {
     console.log(currentBar.S + ' - Checking crossover...')
-    let pivotPoints = pivotPointsData.pivotPoints;    
+    let pivotPoints = pivotPointsData.pivotPoints;   
 
     // Current Bar crossing S3
-    if (currentBar.o <= pivotPoints.dailyPivotPoints.s3 && currentBar.c > pivotPoints.dailyPivotPoints.s3) {      
+    if ((currentBar.o <= pivotPoints.dailyPivotPoints.s3 && currentBar.c > pivotPoints.dailyPivotPoints.s3) ||
+        (pivotPointsData.latestMinuteBar && pivotPointsData.latestMinuteBar.c < pivotPoints.dailyPivotPoints.s3 && currentBar.c > pivotPoints.dailyPivotPoints.s3)) {      
         console.log(currentBar.S + ' - Crossed S3. Time: ' + moment().tz('America/New_York').toString());
         await monitor('s3', pivotPoints.dailyPivotPoints.s3, pivotPoints.dailyPivotPoints.s2, currentBar);     
     }
 
     // Current Bar crossing S2 
-    else if (
-        currentBar.o > pivotPoints.dailyPivotPoints.s3 &&
-        currentBar.o <= pivotPoints.dailyPivotPoints.s2 && currentBar.c > pivotPoints.dailyPivotPoints.s2
-    ) {        
+    else if ((currentBar.o > pivotPoints.dailyPivotPoints.s3 && currentBar.o <= pivotPoints.dailyPivotPoints.s2 && currentBar.c > pivotPoints.dailyPivotPoints.s2) ||
+    (pivotPointsData.latestMinuteBar && pivotPointsData.latestMinuteBar.c < pivotPoints.dailyPivotPoints.s2 && currentBar.c > pivotPoints.dailyPivotPoints.s2)) {        
         console.log(currentBar.S + ' - Crossed S2. Time: ' + moment().tz('America/New_York').toString());
         await monitor('s2', pivotPoints.dailyPivotPoints.s2, pivotPoints.dailyPivotPoints.s1, currentBar);
     } 
 
     // Current Bar crossing S1
-    else if (
-        currentBar.o > pivotPoints.dailyPivotPoints.s2 &&
-        currentBar.o <= pivotPoints.dailyPivotPoints.s1 && currentBar.c > pivotPoints.dailyPivotPoints.s1
-    ) {
+    else if ((currentBar.o > pivotPoints.dailyPivotPoints.s2 && currentBar.o <= pivotPoints.dailyPivotPoints.s1 && currentBar.c > pivotPoints.dailyPivotPoints.s1) ||
+    (pivotPointsData.latestMinuteBar && pivotPointsData.latestMinuteBar.c < pivotPoints.dailyPivotPoints.s1 && currentBar.c > pivotPoints.dailyPivotPoints.s1)) {
         console.log(currentBar.S + ' - Crossed S1. Time: ' + moment().tz('America/New_York').toString());
         await monitor('s1', pivotPoints.dailyPivotPoints.s1, pivotPoints.dailyPivotPoints.pivot, currentBar);  
     } 
     
     // Current Bar crossing PIVOT
-    else if (
-        currentBar.o > pivotPoints.dailyPivotPoints.s1 &&
-        currentBar.o <= pivotPoints.dailyPivotPoints.pivot && currentBar.c > pivotPoints.dailyPivotPoints.pivot
-    ) {
+    else if ((currentBar.o > pivotPoints.dailyPivotPoints.s1 && currentBar.o <= pivotPoints.dailyPivotPoints.pivot && currentBar.c > pivotPoints.dailyPivotPoints.pivot) ||
+    (pivotPointsData.latestMinuteBar && pivotPointsData.latestMinuteBar.c < pivotPoints.dailyPivotPoints.pivot && currentBar.c > pivotPoints.dailyPivotPoints.pivot)) {
         console.log(currentBar.S + ' - Crossed Pivot. Time: ' + moment().tz('America/New_York').toString());
         await monitor('pivot', pivotPoints.dailyPivotPoints.pivot, pivotPoints.dailyPivotPoints.r1, currentBar);  
     } 
     
     // Current Bar crossing R1
-    else if (
-        currentBar.o > pivotPoints.dailyPivotPoints.pivot &&
-        currentBar.o <= pivotPoints.dailyPivotPoints.r1 && currentBar.c > pivotPoints.dailyPivotPoints.r1
-    ) {
+    else if ((currentBar.o > pivotPoints.dailyPivotPoints.pivot && currentBar.o <= pivotPoints.dailyPivotPoints.r1 && currentBar.c > pivotPoints.dailyPivotPoints.r1) ||
+    (pivotPointsData.latestMinuteBar && pivotPointsData.latestMinuteBar.c < pivotPoints.dailyPivotPoints.r1 && currentBar.c > pivotPoints.dailyPivotPoints.r1)) {
         console.log(currentBar.S + ' - Crossed R1. Time: ' + moment().tz('America/New_York').toString());
         await monitor('r1', pivotPoints.dailyPivotPoints.r1, pivotPoints.dailyPivotPoints.r2, currentBar);  
     } 
     
     // Current Bar crossing R2
-    else if (
-        currentBar.o > pivotPoints.dailyPivotPoints.r1 &&
-        currentBar.o <= pivotPoints.dailyPivotPoints.r2 && currentBar.c > pivotPoints.dailyPivotPoints.r2
-    ) {
+    else if ((currentBar.o > pivotPoints.dailyPivotPoints.r1 && currentBar.o <= pivotPoints.dailyPivotPoints.r2 && currentBar.c > pivotPoints.dailyPivotPoints.r2) ||
+    (pivotPointsData.latestMinuteBar && pivotPointsData.latestMinuteBar.c < pivotPoints.dailyPivotPoints.r2 && currentBar.c > pivotPoints.dailyPivotPoints.r2)) {
         console.log(currentBar.S + ' - Crossed R2. Time: ' + moment().tz('America/New_York').toString());
         await monitor('r2', pivotPoints.dailyPivotPoints.r2, pivotPoints.dailyPivotPoints.r3, currentBar);  
     } 
     
     // Current Bar crossing R3
-    else if (
-        currentBar.o > pivotPoints.dailyPivotPoints.r2 &&
-        currentBar.o <= pivotPoints.dailyPivotPoints.r3 && currentBar.c > pivotPoints.dailyPivotPoints.r3
-    ) {
+    else if ((currentBar.o > pivotPoints.dailyPivotPoints.r2 && currentBar.o <= pivotPoints.dailyPivotPoints.r3 && currentBar.c > pivotPoints.dailyPivotPoints.r3) ||
+    (pivotPointsData.latestMinuteBar && pivotPointsData.latestMinuteBar.c < pivotPoints.dailyPivotPoints.r3 && currentBar.c > pivotPoints.dailyPivotPoints.r3)) {
         console.log(currentBar.S + ' - Crossed R3, DONT BUY!!!!. Time: ' + moment().tz('America/New_York').toString())
     }
     
@@ -279,7 +268,21 @@ export const checkOportunities = async (currentBar, pivotPointsData, barsHour, b
             console.log(currentBar.S + ' - No orders put in place yet...')           
             await checkUpOneFourthOldMonitoring(currentBar, pivotPointsData)
         }                      
-    }    
+    } 
+    
+    //Save Current bar in DB
+    await PivotPoints.findOneAndUpdate(
+        { _id: currentBar.S },
+        {
+            $set: {
+                latestMinuteBar: currentBar
+            },
+        }
+    ).catch((err) =>
+    console.log(
+        "Error updating latest minute bar for " + ticker + ": " + err
+    )
+);
 }
 
 
