@@ -238,7 +238,7 @@ const isOrderFilled = async (orderID) => {
 /*-----------------------------------------------------------------------------------------------------------------------*/
 
 // Executes every 60s when Alpaca Socket sends a bar.
-export const checkOportunities = async (currentBar, pivotPointsData) => {
+export const checkOportunities = async (currentBar, pivotPointsData, barsHour, barsMinute) => {
     if(!pivotPointsData.monitoring){
         console.log(currentBar.S + ' - No previous monitoring...')        
         await checkForCrossover(currentBar, pivotPointsData);
@@ -254,11 +254,17 @@ export const checkOportunities = async (currentBar, pivotPointsData) => {
                     console.log(currentBar.S + ' - We are currently holding a position.')                
                 }
                 else { 
+                    // Closes pending orders if it's 3:30pm
+					if (barsHour >= 15 && barsMinute >= 30) {
+						await cancelOrders(currentBar.S, pivotPointsData.monitoring.orderIDs);
+					}
+
                     if(currentBar.c > pivotPointsData.monitoring.nextPointPrice){
                         console.log(currentBar.S + ' - Current bar has crossed next pivot point...')
                         await cancelOrders(currentBar.S, pivotPointsData.monitoring.orderIDs);
                         await checkForCrossover(currentBar, pivotPointsData);
                     } 
+
                     else{
                         console.log(currentBar.S + ' - Waiting for price drop to start a position.')
                     }                   

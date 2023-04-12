@@ -78,8 +78,7 @@ const tradePivotPoints = (tickers) => {
 					// Closes the socket @ 3:30pm EST Mon - Fri
 					if (currentBar.t && barsHour >= 15 && barsMinute >= 30) {
 						socketClient.close();	
-						console.log("It's time to close the Strategy...")					
-						break;
+						console.log("It's time to close the Strategy...")
 					}
 
 					// TRAAAAAAADDE----------------------------------------------------------------
@@ -90,7 +89,7 @@ const tradePivotPoints = (tickers) => {
 										
             		console.log(currentBar)
 					// Constantly checks if there's a Oportunities and executes them.					
-					await checkOportunities(currentBar, tickerPivotPointsData);									
+					await checkOportunities(currentBar, tickerPivotPointsData, barsHour, barsMinute);									
 				}
 			});
 		}
