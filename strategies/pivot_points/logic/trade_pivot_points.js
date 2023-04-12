@@ -105,7 +105,7 @@ const tradePivotPoints = (tickers) => {
 		"0 58 15 * * 1-5",
 		async function () {		
 			await alpaca.cancelAllOrders();
-			await alpaca.closeAllPositions();
+			await alpaca.closeAllPositions().then(response => console.log(response));
 			console.log("All orders have been canceled. All positions have been closed.")
 		},
 		null,
