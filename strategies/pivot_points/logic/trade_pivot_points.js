@@ -104,9 +104,14 @@ const tradePivotPoints = (tickers) => {
 	var trade = new CronJob(
 		"0 58 15 * * 1-5",
 		async function () {		
-			await alpaca.cancelAllOrders();
-			await alpaca.closeAllPositions().then(response => console.log(response));
-			console.log("All orders have been canceled. All positions have been closed.")
+			alpaca.cancelAllOrders().then(res => {
+				console.log(res)
+				console.log("All pending orders have been cancelled.")
+				alpaca.closeAllPositions().then(response => {
+					console.log(response)
+					console.log("All positions have been closed.")
+				});				
+			})			
 		},
 		null,
 		true,
