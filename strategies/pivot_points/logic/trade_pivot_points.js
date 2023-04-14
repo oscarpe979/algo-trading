@@ -107,10 +107,14 @@ const tradePivotPoints = (tickers) => {
 			alpaca.cancelAllOrders().then(res => {
 				console.log(res)
 				console.log("All pending orders have been cancelled.")
-				alpaca.closeAllPositions().then(response => {
-					console.log(response)
-					console.log("All positions have been closed.")
-				});				
+
+				setTimeout(() => {
+					alpaca.closeAllPositions().then(response => {
+						console.log(response)
+						console.log("All positions have been closed.")
+					});
+				}, 10000)
+								
 			})			
 		},
 		null,
