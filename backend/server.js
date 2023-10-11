@@ -4,6 +4,7 @@
 import dotenv from "dotenv";
 import express from "express";
 import mongoose from "mongoose";
+const path = require('path');
 
 // Strategies
 import pivotPointsStrategy from "./strategies/pivot_points/pivot_points.js";
@@ -46,6 +47,14 @@ mongoose
 /** --------------------------------------------------------------------------------------------------------------------
  *                                          LOGIC
  -----------------------------------------------------------------------------------------------------------------------*/
+
+//Serves front end
+if(process.env.NODE_ENV === 'production'){
+	app.use(express.static(path.join(__dirname, '../frontend/build')));
+	app.get('*', (req, res) => res.sendFile(path.resolve(__dirname, '../', 'frontend', 'build', 'index.html')));
+}
+
+//Initiate running strategies
 const init = async () => {
 	const runStrategies = () => {
 		pivotPointsStrategy();
