@@ -30,12 +30,18 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 5000;
 
+/** --------------------------------------------------------------------------------------------------------------------
+ *                                          MIDDLEWARE
+ -----------------------------------------------------------------------------------------------------------------------*/
+app.use(express.json());
+
 // MongoDB
 const db = process.env.MONGO_URI;
 mongoose
 	.connect(db, { useNewUrlParser: true, useUnifiedTopology: true })
 	.then(() => console.log("MongoDB Connected..."))
 	.catch((err) => console.log(err));
+
 
 /** --------------------------------------------------------------------------------------------------------------------
  *                                          LOGIC
