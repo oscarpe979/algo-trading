@@ -1,17 +1,18 @@
 /** --------------------------------------------------------------------------------------------------------------------
  *                                          IMPORTS
- -----------------------------------------------------------------------------------------------------------------------*/
+-----------------------------------------------------------------------------------------------------------------------*/
 import dotenv from "dotenv";
 import express from "express";
 import mongoose from "mongoose";
-import * as path from "path";
+import path from "path";
+import { fileURLToPath } from "url";
 
 // Strategies
 import pivotPointsStrategy from "./strategies/pivot_points/pivot_points.js";
 
 /** --------------------------------------------------------------------------------------------------------------------
  *                                          TESTS
- -----------------------------------------------------------------------------------------------------------------------*/
+-----------------------------------------------------------------------------------------------------------------------*/
 // import Alpaca from "@alpacahq/alpaca-trade-api";
 // const alpacaOptions = {
 // 	keyId: process.env.ALPACA_KEY_ID,
@@ -23,7 +24,12 @@ import pivotPointsStrategy from "./strategies/pivot_points/pivot_points.js";
 
 /** --------------------------------------------------------------------------------------------------------------------
  *                                          INITIALIZERS
- -----------------------------------------------------------------------------------------------------------------------*/
+-----------------------------------------------------------------------------------------------------------------------*/
+
+//Gets __dirname variable as it's tricky with ES6 modules
+const filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(filename);
+
 // Environment Variables
 dotenv.config();
 
