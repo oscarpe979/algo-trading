@@ -41,6 +41,7 @@ const port = process.env.PORT || 5000;
  *                                          MIDDLEWARE
  -----------------------------------------------------------------------------------------------------------------------*/
 app.use(express.json());
+app.use(express.urlencoded({extended:false}));
 
 // MongoDB
 const db = process.env.MONGO_URI;
