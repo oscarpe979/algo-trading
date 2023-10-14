@@ -4,7 +4,7 @@
 import dotenv from "dotenv";
 import express from "express";
 import mongoose from "mongoose";
-const path = require('path');
+import path from "path";
 
 // Strategies
 import pivotPointsStrategy from "./strategies/pivot_points/pivot_points.js";
