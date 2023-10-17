@@ -7,6 +7,9 @@ import mongoose from "mongoose";
 import path from "path";
 import { fileURLToPath } from "url";
 
+// Route imports
+import ordersRoutes from './routes/ordersRoutes.js'
+
 // Strategies
 import pivotPointsStrategy from "./strategies/pivot_points/pivot_points.js";
 
@@ -50,9 +53,13 @@ mongoose
 	.then(() => console.log("MongoDB Connected..."))
 	.catch((err) => console.log(err));
 
+/** --------------------------------------------------------------------------------------------------------------------
+ *                                          ROUTES
+ -----------------------------------------------------------------------------------------------------------------------*/
+app.use('/api/orders', ordersRoutes);
 
 /** --------------------------------------------------------------------------------------------------------------------
- *                                          LOGIC
+ *                                          SERVE FRONT END AND INIT TRADINGN ENGINE
  -----------------------------------------------------------------------------------------------------------------------*/
 
 //Serves front end

@@ -14,6 +14,7 @@ import MainDashboard from "views/admin/default";
 import NFTMarketplace from "views/admin/marketplace";
 import Profile from "views/admin/profile";
 import DataTables from "views/admin/dataTables";
+import Downloads from "views/admin/downloads"
 import RTL from "views/admin/rtl";
 
 // Auth Imports
@@ -43,11 +44,11 @@ const routes = [
   //   secondary: true,
   // },
   {
-    name: "Data Tables",
+    name: "Descargas",
     layout: "/admin",
     icon: <Icon as={MdBarChart} width='20px' height='20px' color='inherit' />,
-    path: "/data-tables",
-    component: DataTables,
+    path: "/descargas",
+    component: Downloads,
   },
   // {
   //   name: "Profile",

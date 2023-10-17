@@ -164,7 +164,7 @@ export default function UserReports() {
         />
         <SimpleGrid columns={{ base: 1, md: 2, xl: 2 }} gap='20px'>
           <Tasks />
-          <MiniCalendar h='100%' minW='100%' selectRange={false} />
+          {/* <MiniCalendar h='100%' minW='100%' selectRange={true} /> */}
         </SimpleGrid>
       </SimpleGrid>
     </Box>

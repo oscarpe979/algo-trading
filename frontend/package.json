@@ -1,7 +1,7 @@
 {
   "homepage": ".",
   "name": "algo-trading",
-  "proxy": "http://localhost:5000",
+  "proxy": "http://localhost:5000/",
   "version": "1.0.1",
   "private": true,
   "dependencies": {
@@ -17,11 +17,13 @@
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^12.8.3",
     "apexcharts": "3.35.2",
+    "axios": "^1.5.1",
     "babel-cli": "^6.26.0",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-react": "^6.24.1",
     "babel-register": "^6.26.0",
     "framer-motion": "^4.1.17",
+    "json-2-csv": "^4.1.0",
     "react": "17.0.2",
     "react-apexcharts": "1.4.0",
     "react-calendar": "^3.7.0",
