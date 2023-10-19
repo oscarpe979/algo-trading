@@ -41,11 +41,11 @@ import {
       });
 
       //Download the file
-      const csv = await json2csv(response.data, {emptyFieldValue: ''})  
-      const link = document.createElement('a')
-      link.href = 'data:text/csv,' + encodeURIComponent(csv)
-      link.download = `Trades_${value[0].toLocaleDateString('en-us', { weekday:"long", year:"numeric", month:"short", day:"numeric"})}_to_${value[1].toLocaleDateString('en-us', { weekday:"long", year:"numeric", month:"short", day:"numeric"})}`
-      link.click()
+      // const csv = await json2csv(response.data, {emptyFieldValue: ''})  
+      // const link = document.createElement('a')
+      // link.href = 'data:text/csv,' + encodeURIComponent(csv)
+      // link.download = `Trades_${value[0].toLocaleDateString('en-us', { weekday:"long", year:"numeric", month:"short", day:"numeric"})}_to_${value[1].toLocaleDateString('en-us', { weekday:"long", year:"numeric", month:"short", day:"numeric"})}`
+      // link.click()
 
       console.log(response.data)
     }
