@@ -15,8 +15,8 @@ const alpacaOptions = {
 };
 
 const CASH_LIMIT_AVAILABLE_TO_BUY = 0.1; // Only 10% of the account is available to trade
-const ENTRY_POINT_TOLERANCE = 0.05; // 5 cents over the point.
-const SELL_POINT_TOLERANCE = 0.05; // 5 cents under the point.
+const ENTRY_POINT_TOLERANCE = 0.01; // 1 cents over the point.
+const SELL_POINT_TOLERANCE = 0.01; // 1 cents under the point.
 const STOP_LOSS_RISK_REWARD_RATIO = 1/3; // Stops are when price hits 99.1% of the Entry Price.
 
 /**-----------------------------------------------------------------------------------------------------------------------
