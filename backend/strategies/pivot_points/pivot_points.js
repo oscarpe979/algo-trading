@@ -10,7 +10,11 @@ import tradePivotPoints from "./logic/trade_pivot_points.js";
 /*                                          VARIABLES & CONSTANTS
 /*-----------------------------------------------------------------------------------------------------------------------*/
 
-const tickers = ["QQQ", "SPY", "XLE", "XLU", "JNJ", "TSLA", "XLF", "RTX"];
+const tickers = ["QQQ", "SPY", "XLE", "XLU",
+				"JNJ", "UNH", "SBUX", "ABNB",
+				"TSLA", "WMT", "NVDA", "MELI",
+				"MA", "V", "DIS", "NFLX", "EA",
+				"RTX", "XOM", "PG"];
 
 /**-----------------------------------------------------------------------------------------------------------------------
 /*                                          LOGIC
