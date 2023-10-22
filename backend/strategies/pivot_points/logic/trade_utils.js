@@ -247,8 +247,8 @@ export const checkOportunities = async (currentBar, pivotPointsData, barsHour, b
 					if (barsHour >= 15 && barsMinute >= 30) {
 						await cancelOrders(currentBar.S, pivotPointsData.monitoring.orderIDs);
 					}
-                    // Cancels Orders if they are too close to the next Pivot Point up. (80% of the distance)
-                    if(currentBar.c > (pivotPointsData.monitoring.pointPrice + (pivotPointsData.monitoring.nextPointPrice - pivotPointsData.monitoring.pointPrice)*0.8)){
+                    // Cancels Orders if they are too close to the next Pivot Point up. (50% of the distance)
+                    if(currentBar.c > (pivotPointsData.monitoring.pointPrice + (pivotPointsData.monitoring.nextPointPrice - pivotPointsData.monitoring.pointPrice)*0.5)){
                         console.log(currentBar.S + ' - Current bar has crossed next pivot point...')
                         await cancelOrders(currentBar.S, pivotPointsData.monitoring.orderIDs);
                         await checkForCrossover(currentBar, pivotPointsData);
