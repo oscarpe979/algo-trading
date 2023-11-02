@@ -75,8 +75,8 @@ const tradePivotPoints = (tickers) => {
 					let barsHour = moment(currentBar.t).tz("America/New_York").hour();
 					let barsMinute = moment(currentBar.t).tz("America/New_York").minute();
 
-					// Closes the socket @ 3:30pm EST Mon - Fri
-					if (currentBar.t && barsHour >= 15 && barsMinute >= 30) {
+					// Closes the socket @ 3:30pm EST Mon - Fri until 9:45 am the next day.
+					if ((currentBar.t && barsHour <= 9 && barsMinute <= 44) || (currentBar.t && barsHour >= 15 && barsMinute >= 30)) {
 						socketClient.close();	
 						console.log("It's time to close the Strategy...")
 					}
