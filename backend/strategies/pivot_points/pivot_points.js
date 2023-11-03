@@ -26,9 +26,9 @@ const pivotPointsStrategy = async () => {
 	updateAllPivotPoints(tickers);
 
 	// Time at which the server starts
-	const hourStarted = moment().hours();
-	const minuteStarted = moment().minutes();
-	const dayStarted = moment().day()
+	const currentMoment = moment();
+	const startTime = moment().set({hour: 9, minute: 45, second: 0, millisecond: 0});
+	const endTime = moment().set({hour: 15, minute: 30, second: 0, millisecond: 0});
 	console.log('Server started at: ' + moment().format('HH:mm'))
 
 	//  trading Pivot Points - CronJob: "0 45 9 * * 1-5"
@@ -43,9 +43,9 @@ const pivotPointsStrategy = async () => {
 	);
 
 	// Run as soon as the server starts if it's trading time
-	if( (hourStarted >= 9 && minuteStarted >= 45) || (hourStarted <= 15 && minuteStarted >= 30) ){
+	if( (currentMoment >= startTime) && (currentMoment <= endTime) ){
 		//Checks if its a business day of the week
-		if( dayStarted > 0 && dayStarted < 6)
+		if( currentMoment.day() > 0 && currentMoment.day() < 6)
 			tradePivotPoints(tickers);
 	}		
 };

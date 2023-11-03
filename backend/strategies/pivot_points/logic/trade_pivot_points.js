@@ -42,6 +42,10 @@ const alpaca = new Alpaca(alpacaOptions);
 const tradePivotPoints = (tickers) => {
 	console.log(`Starting day to Trade Pivot Points ----------------------------------${moment().tz('America/New_York').toString()}---------------------------------`);
 
+	// This are the allowed end and start times for this trading day
+	const startTime = moment().set({hour: 9, minute: 45, second: 0, millisecond: 0});
+	const endTime = moment().set({hour: 15, minute: 30, second: 0, millisecond: 0});
+
 	// Connects to Alpaca Streaming Socket
 	const socketClient = new W3CWebSocket(wssMarketDataURL);
 
@@ -72,11 +76,12 @@ const tradePivotPoints = (tickers) => {
 				//Iterate over socket Data Points
 				for (let i = 0; i < data.length; i++) {
 					let currentBar = data[i];
-					let barsHour = moment(currentBar.t).tz("America/New_York").hour();
-					let barsMinute = moment(currentBar.t).tz("America/New_York").minute();
+					let currentMoment = moment(currentBar.t);
+					let barsHour = currentMoment.tz("America/New_York").hour();
+					let barsMinute = currentMoment.tz("America/New_York").minute();
 
 					// Closes the socket @ 3:30pm EST Mon - Fri until 9:45 am the next day.
-					if ((currentBar.t && barsHour <= 9 && barsMinute <= 44) || (currentBar.t && barsHour >= 15 && barsMinute >= 30)) {
+					if ((currentBar.t && currentMoment < startTime) || (currentBar.t && currentMoment > endTime)) {
 						socketClient.close();	
 						console.log("It's time to close the Strategy...")
 					}
