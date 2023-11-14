@@ -43,7 +43,7 @@ const tradePivotPoints = (tickers) => {
 	console.log(`Starting day to Trade Pivot Points ----------------------------------${moment().tz('America/New_York').toString()}---------------------------------`);
 
 	// This are the allowed end and start times for this trading day
-	const startTime = moment().tz("America/New_York").set({hour: 9, minute: 45, second: 0, millisecond: 0});
+	const startTime = moment().tz("America/New_York").set({hour: 9, minute: 44, second: 0, millisecond: 0}); // Because at 9:45am we get 9:44am data.
 	const endTime = moment().tz("America/New_York").set({hour: 15, minute: 30, second: 0, millisecond: 0});
 
 	// Connects to Alpaca Streaming Socket
@@ -84,7 +84,7 @@ const tradePivotPoints = (tickers) => {
 					if ((currentBar.t && currentMoment < startTime) || (currentBar.t && currentMoment > endTime)) {
 						socketClient.close();	
 						console.log("It's time to close the Strategy...")
-						console.log("Current Moment: " + currentMoment)
+						console.log("Current Moment: " + currentMoment.toString())
 					}
 
 					// TRAAAAAAADDE----------------------------------------------------------------
