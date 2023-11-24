@@ -71,7 +71,7 @@ if(process.env.NODE_ENV === 'production'){
 //Initiate running strategies
 const init = async () => {
 	const runStrategies = () => {
-		//pivotPointsStrategy();
+		pivotPointsStrategy();
 	};
 
 	runStrategies();
