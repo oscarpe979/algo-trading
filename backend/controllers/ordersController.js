@@ -14,13 +14,13 @@ export async function getAllOrders(req, res) {
         params: req.query
     });
 
-    //Filter all filled trades
-    const filledOrders = response.data.filter(order => order.status === 'filled' && order.type === 'limit')
+    //Filter all filled and partially filled trades
+    const filledOrders = response.data.filter(order => order.side === 'buy' && order.filled_at !== null && order.type === 'limit')
+    
+    //Filter market sell orders.
+    const marketSellOrders = response.data.filter(order => order.side === 'sell' && order.type === 'market')
 
-    //Join market sells to the correct bracket trade where no limit or stop sells were executed.
-    const marketSellOrders = response.data.filter(order => order.type === 'market')
-
-    //Organize info in JSON
+    //Organize info in JSON of all filled orders
     const organizedTrades = filledOrders.map((bracketOrder) => {
         return {
             symbol: bracketOrder.symbol,
@@ -63,6 +63,18 @@ export async function getAllOrders(req, res) {
             limit_filled_at: bracketOrder.legs && bracketOrder.legs[0].filled_at && moment(bracketOrder.legs[0].filled_at).format('DD/MM/YYYY h:mm a'),
             limit_canceled_at: bracketOrder.legs && bracketOrder.legs[0].canceled_at && moment(bracketOrder.legs[0].canceled_at).format('DD/MM/YYYY h:mm a'),
             limit_replaced_at: bracketOrder.legs && bracketOrder.legs[0].replaced_at && moment(bracketOrder.legs[0].replaced_at).format('DD/MM/YYYY h:mm a'),
+
+            market_qty: null,
+            market_filled_qty: null,
+            market_side: null,
+            market_type: null,      
+            market_limit_price: null,
+            market_filled_avg_price: null,
+            market_ammount: null,
+            market_status: null,
+            market_submitted_at: null,
+            market_filled_at: null,
+            market_canceled_at: null,
         }               
     })
   
@@ -70,23 +82,22 @@ export async function getAllOrders(req, res) {
     const finalOrdersList = organizedTrades.map((order) => {
         //Looks if there's a market sell order for this bracketOrder.
         var foundMarketSellOrder = marketSellOrders.find(marketSellOrder => (marketSellOrder.symbol === order.symbol) && 
-                                (marketSellOrder.qty === order.qty) &&
+                                (marketSellOrder.qty === order.filled_qty || marketSellOrder.qty == (order.limit_qty - order.limit_filled_qty)) &&
                                 order.limit_canceled_at && order.limit_canceled_at === moment(marketSellOrder.submitted_at).format('DD/MM/YYYY h:mm a'))
         if(foundMarketSellOrder){
             return {
                 ...order,
-                limit_qty: foundMarketSellOrder.qty,
-                limit_filled_qty: foundMarketSellOrder.filled_qty,
-                limit_side: foundMarketSellOrder.side,
-                limit_type: foundMarketSellOrder.type,       
-                limit_limit_price: foundMarketSellOrder.limit_price,
-                limit_filled_avg_price: foundMarketSellOrder.filled_avg_price,
-                limit_ammount: foundMarketSellOrder.qty*foundMarketSellOrder.filled_avg_price,
-                limit_status: foundMarketSellOrder.status,
-                limit_submitted_at: foundMarketSellOrder.submitted_at && moment(foundMarketSellOrder.submitted_at).format('DD/MM/YYYY h:mm a'),
-                limit_filled_at: foundMarketSellOrder.filled_at && moment(foundMarketSellOrder.filled_at).format('DD/MM/YYYY h:mm a'),
-                limit_canceled_at: foundMarketSellOrder.canceled_at && moment(foundMarketSellOrder.canceled_at).format('DD/MM/YYYY h:mm a'),
-                limit_replaced_at: foundMarketSellOrder.replaced_at && moment(foundMarketSellOrder.replaced_at).format('DD/MM/YYYY h:mm a'),
+                market_qty: foundMarketSellOrder.qty,
+                market_filled_qty: foundMarketSellOrder.filled_qty,
+                market_side: foundMarketSellOrder.side,
+                market_type: foundMarketSellOrder.type,       
+                market_limit_price: foundMarketSellOrder.limit_price,
+                market_filled_avg_price: foundMarketSellOrder.filled_avg_price,
+                market_ammount: foundMarketSellOrder.qty*foundMarketSellOrder.filled_avg_price,
+                market_status: foundMarketSellOrder.status,
+                market_submitted_at: foundMarketSellOrder.submitted_at && moment(foundMarketSellOrder.submitted_at).format('DD/MM/YYYY h:mm a'),
+                market_filled_at: foundMarketSellOrder.filled_at && moment(foundMarketSellOrder.filled_at).format('DD/MM/YYYY h:mm a'),
+                market_canceled_at: foundMarketSellOrder.canceled_at && moment(foundMarketSellOrder.canceled_at).format('DD/MM/YYYY h:mm a'),
             }
         }
         else{
