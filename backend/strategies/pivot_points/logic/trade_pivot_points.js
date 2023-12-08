@@ -70,7 +70,6 @@ const tradePivotPoints = (tickers) => {
 
 		// Getting Trades Data!
 		else if (data[0].T === "b") {
-			console.log('------------------------------------------------------------------')
 			// Find Pivot Points Info
 			PivotPoints.find().then(async (ppData) => {
 				//Iterate over socket Data Points

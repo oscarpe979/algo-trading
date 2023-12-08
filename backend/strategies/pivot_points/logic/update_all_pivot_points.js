@@ -16,7 +16,7 @@ const updateAllPivotPoints = async (tickers) => {
 	var updatePivotPoints = new CronJob(
 		"0 0/15 8 * * 1-5",
 		async function () {
-			console.log("Updating Pivot Points");
+			console.log("Updating Pivot Points...");
 			for await (let ticker of tickers) {
 				let tickerPivotPoints = await getPivotPoints(ticker);
 
@@ -32,7 +32,7 @@ const updateAllPivotPoints = async (tickers) => {
 					}
 				).then((doc) => {
 					if (doc) {
-						console.log("Pivot Points Updated for " + ticker);
+						//console.log("Pivot Points Updated for " + ticker);
 					} else {
 						const newPivotPoints = new PivotPoints({
 							_id: ticker,
