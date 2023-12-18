@@ -92,7 +92,7 @@ const tradePivotPoints = (tickers) => {
 						(tickerPp) => tickerPp._id === currentBar.S
 					);	
 										
-            		console.log(currentBar)
+            		//console.log(currentBar)
 					// Constantly checks if there's a Oportunities and executes them.					
 					await checkOportunities(currentBar, tickerPivotPointsData, barsHour, barsMinute);									
 				}
