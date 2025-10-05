@@ -1,3 +1,12 @@
+/**
+ * @file trade_pivot_points.js
+ * @description This file contains the core logic for the pivot points trading strategy.
+ * It establishes a WebSocket connection to Alpaca's real-time market data stream,
+ * processes incoming bar data for a list of tickers, and checks for trading opportunities
+ * based on pre-calculated pivot points stored in the database. It also includes a cron job
+ * to close all open orders and positions at the end of the trading day.
+ */
+
 /**-----------------------------------------------------------------------------------------------------------------------
 /*                                          IMPORTS
 /*-----------------------------------------------------------------------------------------------------------------------*/
@@ -13,12 +22,17 @@ import { checkOportunities } from "./trade_utils.js";
 /*                                          CONSTANTS
 /*-----------------------------------------------------------------------------------------------------------------------*/
 
+// Configuration options for the Alpaca API, loaded from environment variables.
 const alpacaOptions = {
 	keyId: process.env.ALPACA_KEY_ID,
 	secretKey: process.env.ALPACA_SECRET_KEY,
-	paper: true,
+	paper: true, // Use paper trading account
 };
+
+// WebSocket URL for Alpaca's IEX data stream.
 const wssMarketDataURL = "wss://stream.data.alpaca.markets/v2/iex";
+
+// Authentication object for the WebSocket connection.
 const socketAuth = {
 	action: "auth",
 	key: process.env.ALPACA_KEY_ID,
@@ -29,96 +43,106 @@ const socketAuth = {
 /*                                          INITIALIZERS
 /*-----------------------------------------------------------------------------------------------------------------------*/
 
-// Instantiate the W3CWebSocket withguration options
+// Instantiate the W3CWebSocket client.
 const W3CWebSocket = websocket.w3cwebsocket;
 
-// Instantiate the ALPACA API with configuration options
+// Instantiate the Alpaca API client with the specified options.
 const alpaca = new Alpaca(alpacaOptions);
 
 /**-----------------------------------------------------------------------------------------------------------------------
 /*                                          LOGIC
 /*-----------------------------------------------------------------------------------------------------------------------*/
 
+/**
+ * @function tradePivotPoints
+ * @description Initializes and runs the pivot points trading strategy.
+ * It connects to the Alpaca market data stream via WebSocket, listens for incoming bar data,
+ * and triggers trading logic based on pivot points. It also schedules a cron job to clean up at the end of the day.
+ * @param {string[]} tickers - An array of stock ticker symbols to trade (e.g., ["QQQ", "SPY"]).
+ */
 const tradePivotPoints = (tickers) => {
 	console.log(`Starting day to Trade Pivot Points ----------------------------------${moment().tz('America/New_York').toString()}---------------------------------`);
 
-	// This are the allowed end and start times for this trading day
-	const startTime = moment().tz("America/New_York").set({hour: 9, minute: 44, second: 0, millisecond: 0}); // Because at 9:45am we get 9:44am data.
+	// Define the start and end times for the trading session in the 'America/New_York' timezone.
+	const startTime = moment().tz("America/New_York").set({hour: 9, minute: 44, second: 0, millisecond: 0}); // Data for 9:44 AM arrives at 9:45 AM.
 	const endTime = moment().tz("America/New_York").set({hour: 15, minute: 30, second: 0, millisecond: 0});
 
-	// Connects to Alpaca Streaming Socket
+	// Establish a new WebSocket connection to the Alpaca data stream.
 	const socketClient = new W3CWebSocket(wssMarketDataURL);
 
-	// Listens to all messages
+	// Set up the message handler for the WebSocket.
 	socketClient.onmessage = async function (e) {
 		const data = JSON.parse(e.data);
 		const message = data[0].msg;
 		const subscriptionMessage = { action: "subscribe", bars: tickers };
 
-		// Verify Socket Connection
+		// Step 1: Handle the initial connection success message.
 		if (data[0].T === "success" && message === "connected") {
-			// Autenticate
+			// Once connected, send authentication credentials.
 			socketClient.send(JSON.stringify(socketAuth));
 		}
 
-		// Verify Socket Authentication
+		// Step 2: Handle the authentication success message.
 		else if (data[0].T === "success" && message === "authenticated") {
-			// Subscribe
+			// Once authenticated, subscribe to the real-time bar data for the specified tickers.
 			socketClient.send(JSON.stringify(subscriptionMessage));
 			console.log('Websocket authenticated & connected.')
 		}
 
-		// Getting Trades Data!
+		// Step 3: Process incoming bar data.
 		else if (data[0].T === "b") {
-			// Find Pivot Points Info
+			// Find all pivot point data stored in the database.
 			PivotPoints.find().then(async (ppData) => {
-				//Iterate over socket Data Points
+				// Iterate over each bar received in the WebSocket message.
 				for (let i = 0; i < data.length; i++) {
 					let currentBar = data[i];
 					let currentMoment = moment(currentBar.t).tz("America/New_York");
 					let barsHour = currentMoment.hour();
 					let barsMinute = currentMoment.minute();
 
-					// Closes the socket @ 3:30pm EST Mon - Fri until 9:45 am the next day.
+					// If the bar's timestamp is outside of trading hours, close the socket.
 					if ((currentBar.t && currentMoment < startTime) || (currentBar.t && currentMoment > endTime)) {
 						socketClient.close();	
 						console.log("It's time to close the Strategy...")
 						console.log("Current Moment: " + currentMoment.toString())
 					}
 
-					// TRAAAAAAADDE----------------------------------------------------------------
-					// Get all Pivot Points
+					// --- CORE TRADING LOGIC ---
+					// Find the pivot point data for the specific ticker of the current bar.
 					let tickerPivotPointsData = ppData.find(
 						(tickerPp) => tickerPp._id === currentBar.S
 					);	
 										
             		//console.log(currentBar)
-					// Constantly checks if there's a Oportunities and executes them.					
+					// Pass the current bar and its pivot points to the utility function to check for trading opportunities.
 					await checkOportunities(currentBar, tickerPivotPointsData, barsHour, barsMinute);									
 				}
 			});
 		}
 	};
 
-	// Sends message to the console confirming the socket has been closed.
+	// Set up the close handler for the WebSocket.
 	socketClient.onclose = function () {
 		console.log(`Pivot Points Trading has been Stopped -------------------------------${moment().tz('America/New_York').toString()}---------------------------------`);
 	};
 
-	// Closes any existing orders @ 3:58pm 
+	// --- END-OF-DAY CLEANUP ---
+	// Schedule a cron job to run every weekday at 3:58 PM New York time.
 	var trade = new CronJob(
-		"0 58 15 * * 1-5",
+		"0 58 15 * * 1-5", // Cron pattern: at 15:58 on every day-of-week from 1 through 5.
 		async function () {		
+			// Cancel all open orders.
 			alpaca.cancelAllOrders().then(res => {
 				console.log(res)
 				console.log("All pending orders have been cancelled.")
 
+				// After a delay, close all open positions.
 				setTimeout(() => {
 					alpaca.closeAllPositions().then(response => {
 						console.log(response)
 						console.log("All positions have been closed.")
 					});
-				}, 10000)
+				}, 10000) // 10-second delay to ensure cancellations are processed.
 								
 			})			
 		},

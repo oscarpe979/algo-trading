@@ -1,9 +1,20 @@
 import axios from "axios";
 import moment from 'moment';
 
+/**
+ * @async
+ * @function getAllOrders
+ * @description This function retrieves all orders from the Alpaca API, filters them, and organizes the data into a JSON format.
+ * It specifically processes bracket orders, identifies associated market sell orders, and combines them into a comprehensive trade list.
+ * @param {object} req - The request object from Express.js, containing query parameters for the API call.
+ * @param {object} res - The response object from Express.js.
+ * @returns {object} - A JSON object containing the organized list of trades, including details for the primary order and its legs (stop and limit), as well as any associated market sell orders.
+ */
 export async function getAllOrders(req, res) {
  
  
+    // Fetch all orders from the Alpaca API using the credentials and endpoint from environment variables.
+    // The request parameters are passed from the original client request.
     const response = await axios({
         method: 'get',
         url: `${process.env.ALPACA_API_ENDPOINT}/${process.env.ALPACA_API_VERSION}/orders`,
@@ -14,15 +25,19 @@ export async function getAllOrders(req, res) {
         params: req.query
     });
 
-    //Filter all filled and partially filled trades
+    // Filter the response data to get only filled or partially filled 'buy' limit orders.
+    // These are considered the primary leg of a bracket order in this context.
     const filledOrders = response.data.filter(order => order.side === 'buy' && order.filled_at !== null && order.type === 'limit')
     
-    //Filter market sell orders.
+    // Filter the response data to get all 'sell' market orders.
+    // These will be matched later to their corresponding bracket orders.
     const marketSellOrders = response.data.filter(order => order.side === 'sell' && order.type === 'market')
 
-    //Organize info in JSON of all filled orders
+    // Map over the filtered 'buy' orders to create a structured JSON object for each trade.
+    // This extracts the relevant information for the primary order and its legs (stop and limit).
     const organizedTrades = filledOrders.map((bracketOrder) => {
         return {
+            // --- Main Order Details ---
             symbol: bracketOrder.symbol,
             qty: bracketOrder.qty,
             filled_qty: bracketOrder.filled_qty,
@@ -38,6 +53,7 @@ export async function getAllOrders(req, res) {
             canceled_at: bracketOrder.canceled_at && moment(bracketOrder.canceled_at).format('DD/MM/YYYY h:mm a'),
             replaced_at: bracketOrder.replaced_at && moment(bracketOrder.replaced_at).format('DD/MM/YYYY h:mm a'),
     
+            // --- Stop Loss Leg Details ---
             stop_qty: bracketOrder.legs && bracketOrder.legs[1].qty,
             stop_filled_qty: bracketOrder.legs && bracketOrder.legs[1].filled_qty,
             stop_side: bracketOrder.legs && bracketOrder.legs[1].side,
@@ -51,6 +67,7 @@ export async function getAllOrders(req, res) {
             stop_canceled_at: bracketOrder.legs && bracketOrder.legs[1].canceled_at && moment(bracketOrder.legs[1].canceled_at).format('DD/MM/YYYY h:mm a'),
             stop_replaced_at: bracketOrder.legs && bracketOrder.legs[1].replaced_at && moment(bracketOrder.legs[1].replaced_at).format('DD/MM/YYYY h:mm a'),
     
+            // --- Take Profit Leg (Limit) Details ---
             limit_qty: bracketOrder.legs && bracketOrder.legs[0].qty,
             limit_filled_qty: bracketOrder.legs && bracketOrder.legs[0].filled_qty,
             limit_side: bracketOrder.legs && bracketOrder.legs[0].side,
@@ -64,6 +81,8 @@ export async function getAllOrders(req, res) {
             limit_canceled_at: bracketOrder.legs && bracketOrder.legs[0].canceled_at && moment(bracketOrder.legs[0].canceled_at).format('DD/MM/YYYY h:mm a'),
             limit_replaced_at: bracketOrder.legs && bracketOrder.legs[0].replaced_at && moment(bracketOrder.legs[0].replaced_at).format('DD/MM/YYYY h:mm a'),
 
+            // --- Market Sell Order Details (initialized as null) ---
+            // These fields will be populated if a matching market sell order is found.
             market_qty: null,
             market_filled_qty: null,
             market_side: null,
@@ -78,12 +97,15 @@ export async function getAllOrders(req, res) {
         }               
     })
   
-    //Adds the Maket Sells to the correct respective bracket orders.
+    // Map over the organized trades to find and attach their corresponding market sell orders.
     const finalOrdersList = organizedTrades.map((order) => {
-        //Looks if there's a market sell order for this bracketOrder.
+        // Find a market sell order that matches the symbol, quantity, and cancellation time of the limit order leg.
+        // This logic assumes that a market sell order is placed immediately after the take-profit limit order is canceled.
         var foundMarketSellOrder = marketSellOrders.find(marketSellOrder => (marketSellOrder.symbol === order.symbol) && 
                                 (marketSellOrder.qty === order.filled_qty || marketSellOrder.qty == (order.limit_qty - order.limit_filled_qty)) &&
                                 order.limit_canceled_at && order.limit_canceled_at === moment(marketSellOrder.submitted_at).format('DD/MM/YYYY h:mm a'))
+
+        // If a matching market sell order is found, merge its details into the trade object.
         if(foundMarketSellOrder){
             return {
                 ...order,
@@ -101,10 +123,12 @@ export async function getAllOrders(req, res) {
             }
         }
         else{
+            // If no matching market sell order is found, return the original trade object.
             return order
         }        
     });   
 
+    // Send the final, comprehensive list of trades as a JSON response.
     res.json(finalOrdersList)
     
 }
